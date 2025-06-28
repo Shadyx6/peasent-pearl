@@ -1,0 +1,41 @@
+// ProductItem.js
+import React, { useContext } from 'react'
+import { ShopContext } from '../context/ShopContext'
+import { Link } from 'react-router-dom'
+
+const ProductItem = ({ id, image, name, price }) => {
+  const { currency } = useContext(ShopContext)
+
+  return (
+    <Link 
+      to={`/product/${id}`}
+      className="group relative overflow-hidden transition-all duration-300 hover:shadow-lg rounded-lg"
+    >
+      <div className="aspect-square overflow-hidden bg-gray-50">
+        <img 
+          src={image[0]} 
+          alt={name}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+        />
+      </div>
+      
+      <div className="p-4">
+        <h3 className="text-sm font-medium text-gray-900 mb-1 line-clamp-1">
+          {name}
+        </h3>
+        <p className="text-sm font-serif text-amber-700">
+          {currency} {price.toLocaleString()}
+        </p>
+      </div>
+
+      {/* Quick view overlay */}
+      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+        <span className="text-white bg-amber-700 px-4 py-2 rounded-full text-sm font-medium transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+          View Details
+        </span>
+      </div>
+    </Link>
+  )
+}
+
+export default ProductItem
