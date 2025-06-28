@@ -1,6 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { FiInstagram } from 'react-icons/fi';
+import { FaTiktok } from 'react-icons/fa';
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -42,7 +44,7 @@ const Hero = () => {
   };
 
   return (
-    <section className="w-full h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)] overflow-hidden bg-amber-50">
+    <section className="relative w-full h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)] overflow-hidden bg-amber-50">
       {/* Animated background texture */}
       <motion.div 
         initial={{ opacity: 0 }}
@@ -57,12 +59,36 @@ const Hero = () => {
         animate="animate"
         className="absolute top-1/4 left-10 w-16 h-16 bg-amber-200 rounded-full"
       />
-      <motion.div
-        variants={floatingCircle}
-        animate="animate"
-        transition={{ delay: 0.5 }}
-        className="absolute bottom-1/3 right-8 w-24 h-24 bg-rose-300 rounded-full"
-      />
+     <motion.div
+  variants={floatingCircle}
+  animate="animate"
+  transition={{ delay: 0.5 }}
+  className="absolute bottom-1/3 right-8 w-24 h-24 bg-rose-300 rounded-full"
+/>
+
+
+      {/* Social Icons - Fixed on left side */}
+      <div className="hidden md:flex flex-col items-center fixed left-6 bottom-1/2 transform translate-y-1/2 space-y-4 z-20">
+        <motion.a 
+          href="https://instagram.com" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          whileHover={{ scale: 1.1 }}
+          className="text-amber-700 hover:text-amber-800 transition-colors"
+        >
+          <FiInstagram className="w-5 h-5" />
+        </motion.a>
+        <motion.a 
+          href="https://tiktok.com" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          whileHover={{ scale: 1.1 }}
+          className="text-amber-700 hover:text-amber-800 transition-colors"
+        >
+          <FaTiktok className="w-5 h-5" />
+        </motion.a>
+        <div className="w-px h-16 bg-amber-300"></div>
+      </div>
 
       {/* Main content container */}
       <motion.div 
@@ -132,6 +158,28 @@ const Hero = () => {
             Our Story
           </motion.button>
         </motion.div>
+
+        {/* Mobile Social Icons */}
+        <div className="md:hidden flex space-x-6 mt-8">
+          <motion.a 
+            href="https://instagram.com" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            whileHover={{ scale: 1.1 }}
+            className="text-amber-700 hover:text-amber-800 transition-colors"
+          >
+            <FiInstagram className="w-6 h-6" />
+          </motion.a>
+          <motion.a 
+            href="https://tiktok.com" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            whileHover={{ scale: 1.1 }}
+            className="text-amber-700 hover:text-amber-800 transition-colors"
+          >
+            <FaTiktok className="w-6 h-6" />
+          </motion.a>
+        </div>
 
         {/* Animated scroll indicator */}
         <motion.div

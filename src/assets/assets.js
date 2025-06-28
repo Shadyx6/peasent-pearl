@@ -6,7 +6,7 @@ export const products = [
         "image": ["/assets/image/ak1.jpg"],
         "category": "Anklet",
         "stock": 10,
-         "bestseller": true
+         "bestseller": false
 
 
     
@@ -18,7 +18,7 @@ export const products = [
         "image": ["/assets/image/ak2.jpg"],
         "category": "Anklet",
         "stock": 10,
-         "bestseller": true
+         "bestseller": false
 
 
     
@@ -30,7 +30,7 @@ export const products = [
         "image": ["/assets/image/ak3.jpg"],
         "category": "Anklet",
         "stock": 10,
-         "bestseller": true
+         "bestseller": false
 
 
     
@@ -66,7 +66,7 @@ export const products = [
         "image": ["/assets/image/b2.jpg"],
         "category": "Bracelet",
         "stock": 10,
-         "bestseller": true
+         "bestseller": false
 
 
     
@@ -78,7 +78,7 @@ export const products = [
         "image": ["/assets/image/b3.jpg"],
         "category": "Bracelet",
         "stock": 10,
-         "bestseller": true
+         "bestseller": false
 
 
     
@@ -90,7 +90,7 @@ export const products = [
         "image": ["/assets/image/b4.jpg"],
         "category": "Bracelet",
         "stock": 10,
-         "bestseller": true
+         "bestseller": false
 
 
     
@@ -138,7 +138,7 @@ export const products = [
         "image": ["/assets/image/n4.jpg"],
         "category": "Necklace",
         "stock": 10,
-         "bestseller": true
+         "bestseller": false
 
 
     
