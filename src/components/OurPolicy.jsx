@@ -41,7 +41,7 @@ const OurPolicy = () => {
     {
       icon: <FaTruck className="text-amber-600 text-2xl" />,
       title: "Delivery Time",
-      description: "Orders are delivered within 11–15 working days across India."
+      description: "Orders are delivered within 11–15 working days across Pakistan."
     },
     {
       icon: <FaCamera className="text-amber-600 text-2xl" />,

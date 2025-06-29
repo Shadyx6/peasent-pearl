@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiInstagram } from 'react-icons/fi';
 import { FaTiktok } from 'react-icons/fa';
+import { FaWhatsapp } from "react-icons/fa";
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -87,6 +88,15 @@ const Hero = () => {
         >
           <FaTiktok className="w-5 h-5" />
         </motion.a>
+        <motion.a 
+          href="https://api.whatsapp.com/send/?phone=923171731789&text&type=phone_number&app_absent=0" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          whileHover={{ scale: 1.1 }}
+          className="text-amber-700 hover:text-amber-800 transition-colors"
+        >
+          <FaWhatsapp className="w-5 h-5" />
+        </motion.a>
         <div className="w-px h-16 bg-amber-300"></div>
       </div>
 
@@ -162,7 +172,7 @@ const Hero = () => {
         {/* Mobile Social Icons */}
         <div className="md:hidden flex space-x-6 mt-8">
           <motion.a 
-            href="https://instagram.com" 
+            href="https://www.instagram.com/pleasant._.pearl?igsh=MXVsMGNseXM0Z2xwZA%3D%3D&utm_source=qr" 
             target="_blank" 
             rel="noopener noreferrer"
             whileHover={{ scale: 1.1 }}
@@ -171,13 +181,22 @@ const Hero = () => {
             <FiInstagram className="w-6 h-6" />
           </motion.a>
           <motion.a 
-            href="https://tiktok.com" 
+            href="https://www.instagram.com/pleasant._.pearl/" 
             target="_blank" 
             rel="noopener noreferrer"
             whileHover={{ scale: 1.1 }}
             className="text-amber-700 hover:text-amber-800 transition-colors"
           >
             <FaTiktok className="w-6 h-6" />
+          </motion.a>
+          <motion.a 
+            href="https://www.instagram.com/pleasant._.pearl/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            whileHover={{ scale: 1.1 }}
+            className="text-amber-700 hover:text-amber-800 transition-colors"
+          >
+            <FaWhatsapp className="w-6 h-6" />
           </motion.a>
         </div>
 
