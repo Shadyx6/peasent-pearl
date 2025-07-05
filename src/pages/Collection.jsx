@@ -5,14 +5,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import ProductItem from "../components/ProductItem";
 
 const Collection = () => {
-  const { products } = useContext(ShopContext);
+  const { products, categories } = useContext(ShopContext); // Use dynamic categories
   const [showFilter, setShowFilter] = useState(false);
   const [filterProducts, setFilterProducts] = useState([]);
   const [category, setCategory] = useState([]);
   const [sortOption, setSortOption] = useState("relevant");
   const [priceRange, setPriceRange] = useState([0, 1000]);
-
-  const categories = ["Necklace", "Rings", "Bags", "Ringlet", "Anklet"];
 
   const toggleCategory = (e) => {
     const value = e.target.value;
@@ -86,14 +84,12 @@ const Collection = () => {
         </motion.div>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar */}
           <motion.div
             initial="hidden"
             animate="visible"
             variants={fadeIn}
             className="lg:w-72"
           >
-            {/* Mobile Filter Toggle */}
             <button
               onClick={() => setShowFilter(!showFilter)}
               className="lg:hidden flex items-center gap-2 mb-6 bg-amber-700 hover:bg-amber-800 text-white px-5 py-3 rounded-lg transition-colors"
@@ -107,7 +103,6 @@ const Collection = () => {
               />
             </button>
 
-            {/* Filter Panel */}
             <AnimatePresence>
               {(showFilter || window.innerWidth >= 1024) && (
                 <motion.div
@@ -123,7 +118,6 @@ const Collection = () => {
                       Refine Your Search
                     </h3>
 
-                    {/* Categories */}
                     <div className="mb-8">
                       <h4 className="text-sm font-medium text-amber-800 mb-4 uppercase tracking-wider">
                         Categories
@@ -142,13 +136,12 @@ const Collection = () => {
                               checked={category.includes(cat)}
                               className="w-4 h-4 text-amber-600 rounded border-amber-300"
                             />
-                            <span>{cat}</span>
+                            <span>{cat.charAt(0).toUpperCase() + cat.slice(1)}</span>
                           </motion.label>
                         ))}
                       </div>
                     </div>
 
-                    {/* Price Range */}
                     <div className="mb-6">
                       <h4 className="text-sm font-medium text-amber-800 mb-4 uppercase tracking-wider">
                         Price Range
@@ -169,7 +162,6 @@ const Collection = () => {
                       </div>
                     </div>
 
-                    {/* Clear Filters */}
                     {(category.length > 0 || priceRange[1] < 1000) && (
                       <button
                         onClick={() => {
@@ -187,14 +179,12 @@ const Collection = () => {
             </AnimatePresence>
           </motion.div>
 
-          {/* Product Grid */}
           <motion.div
             variants={staggerContainer}
             initial="hidden"
             animate="visible"
             className="flex-1"
           >
-            {/* Sort Options */}
             <motion.div
               variants={fadeIn}
               className="flex flex-col sm:flex-row justify-between items-center mb-8 bg-white p-5 rounded-lg border border-amber-100"
@@ -217,7 +207,6 @@ const Collection = () => {
               </div>
             </motion.div>
 
-            {/* Product Grid */}
             {filterProducts.length > 0 ? (
               <motion.div
                 variants={staggerContainer}
