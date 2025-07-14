@@ -10,6 +10,10 @@ import Order from './pages/Order';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Cart from './pages/Cart';
+import ThankYou from './pages/ThankYou';
+import RefundPolicy from './components/RefundPolicy';
+import TermsConditions from './components/TermsConditions';
+import PrivacyPolicy from './components/PrivacyPolicy';
 
 const App = () => {
   return (
@@ -26,6 +30,10 @@ const App = () => {
           <Route path="/place-order" element={<PlaceOrder />} />
           <Route path="/order" element={<Order />} />
           <Route path="/cart" element={<Cart />} />
+          <Route path='/thank-you'element={<ThankYou/>}/>
+          <Route path='/refund-policy'element={<RefundPolicy/>}/>
+          <Route path='/terms-conditions'element={<TermsConditions/>}/>
+          <Route path='/privacy-policy'element={<PrivacyPolicy/>}/>
         </Routes>
       </main>
       

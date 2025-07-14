@@ -14,6 +14,7 @@ const Cart = () => {
     updateQuantity,
     delivery_fee,
     navigate,
+    clearCart
   } = useContext(ShopContext);
 
   const [cartData, setCartData] = useState([]);
@@ -216,6 +217,17 @@ const Cart = () => {
                 </>
               )}
             </motion.button>
+
+            <motion.button
+      onClick={clearCart}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className="mt-4 w-full flex items-center justify-center gap-2 px-6 py-2 rounded-full text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200 transition-all"
+    >
+      <FiTrash2 />
+      Reset Cart
+    </motion.button>
+
 
             <p className="text-xs text-amber-600 mt-4 text-center">
               Secure delivery within 11-13 business days

@@ -31,6 +31,8 @@ const ShopContextProvider = (props) => {
     }
   });
 
+  
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -109,6 +111,9 @@ const ShopContextProvider = (props) => {
 
   const getCartCount = () =>
     Object.values(cartItems).reduce((sum, qty) => sum + qty, 0);
+
+
+  
 
   const value = {
     products,
