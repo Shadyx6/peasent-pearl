@@ -150,11 +150,7 @@ const Product = () => {
           <div className="space-y-6">
             <h1 className="text-3xl font-serif font-light text-amber-900 mb-2">{product.name}</h1>
             <div className="flex items-center space-x-2 mb-4">
-              <div className="flex text-amber-500">
-                {[...Array(5)].map((_, i) => (
-                  <FiStar key={i} className={`${i < (product.rating || 4) ? 'fill-current' : ''}`} />
-                ))}
-              </div>
+           
              
             </div>
 
