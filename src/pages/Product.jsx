@@ -7,7 +7,7 @@ import {
   FiShoppingCart,
   FiShare2,
   FiZoomIn,
-   FiCheck,
+  FiCheck,
   FiChevronDown,
 } from "react-icons/fi";
 import { FaGem, FaWeightHanging } from "react-icons/fa";
@@ -23,7 +23,7 @@ const Product = () => {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [zoomActive, setZoomActive] = useState(false);
-  const [openFaqIndex, setOpenFaqIndex] = useState(null); // ✅ state for accordion
+  const [openFaqIndex, setOpenFaqIndex] = useState(null);
 
   useEffect(() => {
     const foundProduct = products.find((item) => item._id === productId);
@@ -34,6 +34,16 @@ const Product = () => {
       }
     }
   }, [productId, products]);
+
+  if (!product) {
+    return (
+      <div className="min-h-screen flex justify-center items-center">
+        <div className="animate-pulse text-xl text-amber-700">
+          Loading product...
+        </div>
+      </div>
+    );
+  }
 
   const handleAddToCart = () => {
     if (!selectedVariant) return;
@@ -48,20 +58,20 @@ const Product = () => {
     navigate("/place-order");
   };
 
-  if (!product) {
-    return (
-      <div className="min-h-screen flex justify-center items-center">
-        <div className="animate-pulse text-xl text-amber-700">
-          Loading product...
-        </div>
-      </div>
-    );
-  }
-
   const discountPercentage =
     product.finalPrice && product.price
       ? Math.round(((product.price - product.finalPrice) / product.price) * 100)
       : 0;
+
+  // Build all images from all variants
+  const allImages =
+    product.variants?.flatMap((variant) =>
+      variant.images.map((img) => ({
+        url: img,
+        color: variant.color,
+        variantId: variant._id,
+      }))
+    ) || [{ url: product.image, color: "default" }];
 
   return (
     <motion.div
@@ -86,12 +96,13 @@ const Product = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Images */}
           <div className="relative">
+            {/* Big Image */}
             <div
               className="relative bg-white p-8 rounded-xl shadow-sm border border-amber-100 cursor-zoom-in"
               onClick={() => setZoomActive(true)}
             >
               <img
-                src={selectedVariant?.images[activeImageIndex] || product.image}
+                src={allImages[activeImageIndex]?.url}
                 alt={product.name}
                 className="w-full h-96 object-contain"
               />
@@ -105,11 +116,18 @@ const Product = () => {
               )}
             </div>
 
+            {/* Thumbnails */}
             <div className="flex mt-4 space-x-3 overflow-x-auto pb-2">
-              {(selectedVariant?.images || [product.image]).map((img, index) => (
+              {allImages.map((img, index) => (
                 <button
                   key={index}
-                  onClick={() => setActiveImageIndex(index)}
+                  onClick={() => {
+                    setActiveImageIndex(index);
+                    const variant = product.variants.find(
+                      (v) => v._id === img.variantId
+                    );
+                    if (variant) setSelectedVariant(variant);
+                  }}
                   className={`flex-shrink-0 w-16 h-16 rounded-md border-2 overflow-hidden ${
                     activeImageIndex === index
                       ? "border-amber-600"
@@ -117,7 +135,7 @@ const Product = () => {
                   }`}
                 >
                   <img
-                    src={img}
+                    src={img.url}
                     alt={`${product.name} thumbnail ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
@@ -135,7 +153,7 @@ const Product = () => {
                   &times;
                 </button>
                 <img
-                  src={selectedVariant?.images[activeImageIndex] || product.image}
+                  src={allImages[activeImageIndex]?.url}
                   alt={product.name}
                   className="max-w-full max-h-screen object-contain"
                 />
@@ -186,10 +204,13 @@ const Product = () => {
             </div>
 
             {/* Variants */}
-               {product.variants?.length > 0 && (
+            {product.variants?.length > 0 && (
               <div className="pt-6 border-t border-gray-100">
                 <h3 className="text-sm font-semibold text-gray-800 mb-4 uppercase tracking-wider">
-                  SELECT COLOR: <span className="text-pink-600">{selectedVariant?.color}</span>
+                  SELECT COLOR:{" "}
+                  <span className="text-pink-600">
+                    {selectedVariant?.color}
+                  </span>
                 </h3>
                 <div className="flex flex-wrap gap-3">
                   {product.variants.map((variant) => (
@@ -197,7 +218,11 @@ const Product = () => {
                       key={variant._id}
                       onClick={() => {
                         setSelectedVariant(variant);
-                        setActiveImageIndex(0);
+                        const firstImageIndex = allImages.findIndex(
+                          (img) => img.variantId === variant._id
+                        );
+                        if (firstImageIndex !== -1)
+                          setActiveImageIndex(firstImageIndex);
                       }}
                       className={`flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all relative ${
                         selectedVariant?._id === variant._id
@@ -218,8 +243,9 @@ const Product = () => {
                 </div>
               </div>
             )}
+
             {/* Quantity & Buttons */}
-           <div className="pt-6 border-t border-gray-100 space-y-6">
+            <div className="pt-6 border-t border-gray-100 space-y-6">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-semibold text-gray-800">
                   Quantity
@@ -279,9 +305,6 @@ const Product = () => {
                   Buy Now
                 </motion.button>
               </div>
-
-              {/* Stock indicator */}
-             
             </div>
 
             {/* Description */}
@@ -311,7 +334,7 @@ const Product = () => {
               )}
             </div>
 
-            {/* ✅ FAQ Section */}
+            {/* FAQ Section */}
             {product.faqs && product.faqs.length > 0 && (
               <div className="pt-6 border-t border-amber-100">
                 <h3 className="text-lg font-medium text-amber-900 mb-4">

@@ -170,36 +170,87 @@ const Collection = () => {
                   </div>
 
                   {/* Categories */}
-                  <div className="mb-8">
-                    <h4 className="text-sm font-semibold text-gray-800 mb-4 uppercase tracking-wider flex items-center gap-2">
-                      <RiPriceTag3Line className="text-pink-500" />
-                      Categories
-                    </h4>
-                    <div className="space-y-3">
-                      {categories.map((cat) => (
-                        <motion.button
-                          key={cat}
-                          whileHover={{ x: 4 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => toggleCategory(cat)}
-                          className={`flex items-center gap-3 w-full p-2 rounded-lg transition-all ${
-                            selectedCategories.includes(cat)
-                              ? "bg-pink-50 text-pink-700"
-                              : "text-gray-700 hover:bg-gray-50"
-                          }`}
-                        >
-                          {selectedCategories.includes(cat) ? (
-                            <RiCheckboxCircleFill className="text-pink-600 text-lg" />
-                          ) : (
-                            <RiCheckboxBlankCircleLine className="text-gray-400 text-lg" />
-                          )}
-                          <span className="text-sm font-medium capitalize">
-                            {cat.replace(/-/g, ' ')}
-                          </span>
-                        </motion.button>
-                      ))}
-                    </div>
-                  </div>
+                  {/* Categories */}
+<div className="mb-8">
+  <h4 className="text-sm font-semibold text-gray-800 mb-4 uppercase tracking-wider flex items-center gap-2">
+    <RiPriceTag3Line className="text-pink-500" />
+    Categories
+  </h4>
+  <div className="space-y-3">
+    {categories.map((cat) => {
+      const isExpanded = selectedCategories.includes(cat.name); // Expand if selected
+
+      return (
+        <div key={cat._id} className="border-b border-gray-100 pb-2">
+          {/* Category Button */}
+          <motion.button
+            whileHover={{ x: 4 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() =>
+              toggleCategory(cat.name) // selecting category expands + filters
+            }
+            className={`flex items-center justify-between w-full p-2 rounded-lg transition-all ${
+              isExpanded
+                ? "bg-gradient-to-r from-pink-50 to-rose-50 text-pink-700"
+                : "text-gray-700 hover:bg-gray-50"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              {isExpanded ? (
+                <RiCheckboxCircleFill className="text-pink-600 text-lg" />
+              ) : (
+                <RiCheckboxBlankCircleLine className="text-gray-400 text-lg" />
+              )}
+              <span className="text-sm font-medium capitalize">
+                {cat.name}
+              </span>
+            </div>
+            <RiArrowDropDownLine
+              className={`text-xl transition-transform ${
+                isExpanded ? "rotate-180 text-pink-600" : ""
+              }`}
+            />
+          </motion.button>
+
+          {/* Subcategories */}
+          <AnimatePresence>
+            {isExpanded && cat.subcategories?.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="ml-8 mt-2 space-y-2"
+              >
+                {cat.subcategories.map((sub) => (
+                  <motion.button
+                    key={sub}
+                    whileHover={{ x: 4 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => toggleCategory(sub)}
+                    className={`flex items-center gap-3 w-full p-2 rounded-lg transition-all ${
+                      selectedCategories.includes(sub)
+                        ? "bg-rose-50 text-rose-700"
+                        : "text-gray-600 hover:bg-gray-50"
+                    }`}
+                  >
+                    {selectedCategories.includes(sub) ? (
+                      <RiCheckboxCircleFill className="text-rose-600 text-lg" />
+                    ) : (
+                      <RiCheckboxBlankCircleLine className="text-gray-400 text-lg" />
+                    )}
+                    <span className="text-sm font-medium capitalize">
+                      {sub}
+                    </span>
+                  </motion.button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      );
+    })}
+  </div>
+</div>
 
                   {/* Price Range */}
                   <div className="mb-6">

@@ -75,7 +75,7 @@ const LatestCollection = () => {
         )
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-      setLatestProducts(sortedByDate.slice(0, 5));
+      setLatestProducts(sortedByDate);
       setIsLoading(false);
     }
   }, [products]);
@@ -205,33 +205,38 @@ const LatestCollection = () => {
       </motion.div>
 
       {/* Products */}
-      <motion.div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
-        {latestProducts.map((item, index) => (
-          <motion.div 
-            key={item._id} 
-            variants={itemVariants}
-            custom={index}
-            whileHover={{ y: -5 }}
-            transition={{ duration: 0.2 }}
-          >
-            <ProductItem
-              id={item._id}
-              image={
-                item.variants?.[0]?.images?.[0] ||
-                (Array.isArray(item.image) ? item.image[0] : item.image) ||
-                "/fallback.jpg"
-              }
-              name={item.name}
-              price={item.price}
-              finalPrice={item.finalPrice}
-              stock={
-                item.variants?.some((v) => v.stock > 0) ? 1 : item.stock || 0
-              }
-              badgeType="new"
-            />
-          </motion.div>
-        ))}
-      </motion.div>
+      {/* Products */}
+<motion.div 
+  className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8 overflow-x-auto sm:overflow-visible"
+>
+  {latestProducts.map((item, index) => (
+    <motion.div 
+      key={item._id} 
+      variants={itemVariants}
+      custom={index}
+      whileHover={{ y: -5 }}
+      transition={{ duration: 0.2 }}
+      className="min-w-[250px] sm:min-w-0" // ensures scrollable cards on mobile
+    >
+      <ProductItem
+        id={item._id}
+        image={
+          item.variants?.[0]?.images?.[0] ||
+          (Array.isArray(item.image) ? item.image[0] : item.image) ||
+          "/fallback.jpg"
+        }
+        name={item.name}
+        price={item.price}
+        finalPrice={item.finalPrice}
+        stock={
+          item.variants?.some((v) => v.stock > 0) ? 1 : item.stock || 0
+        }
+        badgeType="new"
+      />
+    </motion.div>
+  ))}
+</motion.div>
+
 
       {/* Button */}
       {latestProducts.length > 0 && (

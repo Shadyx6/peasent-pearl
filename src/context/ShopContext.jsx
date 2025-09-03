@@ -63,7 +63,8 @@ const ShopContextProvider = (props) => {
 
       setProducts(updatedProducts);
       setOffers(activeOffers);
-      setCategories(categoryList.map((cat) => cat.name));
+     setCategories(categoryList);
+
     } catch (error) {
       console.error("Error loading data:", error);
     } finally {
