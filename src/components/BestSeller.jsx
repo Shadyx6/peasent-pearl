@@ -61,11 +61,11 @@ const BestSeller = () => {
       className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto"
     >
       <motion.div variants={fadeInUp} className="text-center mb-10">
-        <h2 className="text-2xl md:text-3xl font-serif font-light text-amber-800 mb-2">
-          Trending Now
+       <h2 className="text-3xl md:text-3xl lg:text-4xl font-serif font-bold text-gray-900 mb-4">
+          Trending <span className="bg-[#D87D8F] bg-clip-text text-transparent">Now 🎀</span>
         </h2>
         <p className="text-sm md:text-base text-amber-600 max-w-2xl mx-auto">
-          On repeat – fan favorites you can’t miss 💖
+          On repeat – fan favorites you can’t miss 
         </p>
       </motion.div>
 

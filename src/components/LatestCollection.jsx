@@ -197,9 +197,9 @@ const LatestCollection = () => {
       <motion.div variants={fadeInUp} className="text-center mb-14">
         
         <h2 className="text-3xl md:text-3xl lg:text-4xl font-serif font-bold text-gray-900 mb-4">
-          Latest <span className="bg-[#D87D8F] bg-clip-text text-transparent">Collection</span>
+          Latest <span className="bg-[#D87D8F] bg-clip-text text-transparent">Collection ✨</span>
         </h2>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-tight">
+        <p className="text-sm md:text-base text-amber-600 max-w-2xl mx-auto">
           Discover our newest handcrafted designs that blend tradition with contemporary elegance.
         </p>
       </motion.div>
@@ -248,10 +248,10 @@ const LatestCollection = () => {
                 boxShadow: "0 10px 25px rgba(236, 72, 153, 0.2)",
               }}
               whileTap={{ scale: 0.95 }}
-              className="px-10 py-4 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-full font-semibold hover:from-pink-700 hover:to-rose-700 transition-all duration-300 shadow-lg hover:shadow-xl relative overflow-hidden group"
+              className="px-10 py-4 bg-[#D87D8F] text-white rounded-full font-semibold hover:from-pink-700 hover:to-rose-700 transition-all duration-300 shadow-lg hover:shadow-xl relative overflow-hidden group"
             >
               <span className="relative z-10">Explore All Collections</span>
-              <span className="absolute inset-0 bg-gradient-to-r from-pink-700 to-rose-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+              <span className="absolute inset-0 bg-[#D87D8F] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
             </motion.button>
           </Link>
         </motion.div>
