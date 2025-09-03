@@ -92,7 +92,7 @@ const About = () => {
             variants={item}
             className="text-3xl md:text-4xl font-serif font-bold text-gray-900 mb-6"
           >
-            Crafting <span className="bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent">Elegance</span>, Since 2023
+            Crafting <span className="bg-[#D87D8F] bg-clip-text text-transparent">Elegance</span>, Since 2023
           </motion.h2>
 
           {/* Short description */}
@@ -117,7 +117,7 @@ const About = () => {
                   boxShadow: "0 10px 25px rgba(236, 72, 153, 0.2)"
                 }}
                 whileTap={{ scale: 0.95 }}
-                className="px-8 py-3.5 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-full font-semibold hover:from-pink-700 hover:to-rose-700 transition-all duration-300 shadow-lg flex items-center gap-2"
+                className="px-8 py-3.5 bg-[#D87D8F] text-white rounded-full font-semibold hover:from-pink-700 hover:to-rose-700 transition-all duration-300 shadow-lg flex items-center gap-2"
               >
                 Explore Collection
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
