@@ -15,7 +15,7 @@ import RefundPolicy from './components/RefundPolicy';
 import TermsConditions from './components/TermsConditions';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import ScrollToTop from './components/ScrollToTop'; // 👈 Import
-
+import Testimonial from './pages/Testimonial';
 const App = () => {
   return (
     <div className="min-h-screen flex flex-col">
@@ -36,6 +36,7 @@ const App = () => {
           <Route path="/refund-policy" element={<RefundPolicy />} />
           <Route path="/terms-conditions" element={<TermsConditions />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/testimonials" element={<Testimonial />} />
         </Routes>
       </main>
 
