@@ -3,7 +3,7 @@
 @import "tailwindcss";
 
 body {
-  background-color: #ffffff; /* was #1A1A1D */
+  background-color: #fffdf5; /* was #1A1A1D */
   font-family: 'Inter', sans-serif;
   color: #000000;
 }

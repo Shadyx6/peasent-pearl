@@ -10,12 +10,12 @@ const Navbar = () => {
 
   const navLinks = [
     { name: 'Home', path: '/' },
-    { name: 'Collections', path: '/collection', badge: 'New' }, // 👈 Added badge
-    { name: 'Contact', path: '/contact' },
+    { name: 'Collections', path: '/collection', badge: 'New' }, // 👈 Added badge badhe the t
+    { name: 'Contact', path: '/contact' }, 
   ];
 
   return (
-    <nav className="w-full sticky top-0 z-50 bg-white shadow-sm">
+    <nav className="w-full sticky top-0 z-50 bg-[#fffdf5] shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Mobile menu button */}

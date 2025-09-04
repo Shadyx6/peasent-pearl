@@ -49,7 +49,7 @@ export default function Hero() {
   const pick = (i) => { setVideoError(false); setProgress(0); setIdx(i); setPlaying(true); };
 
   return (
-    <section className="relative min-h-screen grid lg:grid-cols-2 gap-8 items-center px-4 sm:px-8 md:px-12 py-12 md:py-16">
+    <section className="relative min-h-screen grid lg:grid-cols-2 gap-8 items-center px-4 sm:px-8 md:px-12 py-12 md:py-16 bg-[#fffdf5]">
       {/* Background */}
       <div
         className="pointer-events-none absolute inset-0 -z-10"

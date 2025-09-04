@@ -216,7 +216,7 @@ const LatestCollection = () => {
       custom={index}
       whileHover={{ y: -5 }}
       transition={{ duration: 0.2 }}
-      className="min-w-[250px] sm:min-w-0" // ensures scrollable cards on mobile
+      className="min-w-[250px] sm:min-w-0" // ensures scrollable cards on mobile this is latest coll
     >
       <ProductItem
         id={item._id}
@@ -231,7 +231,7 @@ const LatestCollection = () => {
         stock={
           item.variants?.some((v) => v.stock > 0) ? 1 : item.stock || 0
         }
-        badgeType="new"
+        badgeType="new" // i just want
       />
     </motion.div>
   ))}

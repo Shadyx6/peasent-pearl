@@ -39,7 +39,7 @@ const Contact = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen bg-amber-50 py-12 px-4 sm:px-6 lg:px-8"
+      className="min-h-screen  py-12 px-4 sm:px-6 lg:px-8"
     >
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
@@ -183,7 +183,7 @@ const Contact = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 type="submit"
-                className="w-full bg-amber-600 text-white py-3 rounded-lg font-medium hover:bg-amber-700 transition-colors"
+                className="w-full  bg-[#D87D8F] text-white py-3 rounded-lg font-medium hover:bg-amber-700 transition-colors"
               >
                 Send Message
               </motion.button>

@@ -29,7 +29,7 @@ const Testimonial = () => {
   const single = testimonials.length === 1;
 
   return (
-    <section className="py-12 bg-gray-50">
+    <section className="py-12 bg-[#fffdf5]">
       <div className="max-w-6xl mx-auto px-4">
         <h2 className="text-3xl font-bold text-center mb-10">Happy Customers</h2>
 

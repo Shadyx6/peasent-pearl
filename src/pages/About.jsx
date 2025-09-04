@@ -40,10 +40,10 @@ const About = () => {
   };
 
   return (
-    <section className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-pink-50/20 relative overflow-hidden">
+    <section className="py-16 md:py-24 px-4 sm:px-6 lg:px-8  relative overflow-hidden ">
       {/* Decorative background elements */}
-      <div className="absolute -top-20 -right-20 w-80 h-80 bg-gradient-to-r from-pink-100 to-rose-100 rounded-full blur-3xl opacity-50"></div>
-      <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-gradient-to-r from-amber-100 to-orange-100 rounded-full blur-3xl opacity-40"></div>
+      <div className="absolute -top-20 -right-20 w-80 h-80   rounded-full blur-3xl opacity-50"></div>
+      <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-gradient-to-r rounded-full blur-3xl opacity-40"></div>
       
       <div className="max-w-4xl mx-auto relative">
         <motion.div
@@ -51,7 +51,7 @@ const About = () => {
           whileInView="show"
           viewport={{ once: true, margin: "-50px" }}
           variants={container}
-          className="rounded-3xl bg-white/95 backdrop-blur-sm shadow-xl p-8 md:p-12 text-center relative border border-white/20 overflow-hidden"
+          className="rounded-3xl bg-[#fffdf5] backdrop-blur-sm shadow-xl p-8 md:p-12 text-center relative border border-white/20 overflow-hidden"
         >
           {/* Subtle background pattern */}
           <div className="absolute inset-0 opacity-[0.03] -z-10">

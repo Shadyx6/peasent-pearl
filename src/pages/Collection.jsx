@@ -106,7 +106,7 @@ const Collection = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-pink-50/20">
+    <div className="min-h-screen ">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12">
         {/* Header */}
         <motion.div
@@ -134,7 +134,7 @@ const Collection = () => {
             {/* Mobile Filter Toggle */}
             <button
               onClick={() => setShowFilter(!showFilter)}
-              className="lg:hidden flex items-center gap-3 mb-6 bg-gradient-to-r from-pink-600 to-rose-600 text-white px-6 py-3.5 rounded-xl font-medium w-full justify-center shadow-lg hover:shadow-xl transition-all"
+              className="lg:hidden flex items-center gap-3 mb-6 bg-[#D87D8F] text-white px-6 py-3.5 rounded-xl font-medium w-full justify-center shadow-lg hover:shadow-xl transition-all"
             >
               <RiFilterLine className="text-lg" />
               FILTERS {activeFilters > 0 && `(${activeFilters})`}
