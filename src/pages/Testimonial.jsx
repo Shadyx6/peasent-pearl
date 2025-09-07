@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
+import { FaRegSmile, FaStar } from "react-icons/fa";
 
-const backendUrl = import.meta.env.VITE_BACKEND_URL; // e.g. https://api.frindev.in
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const Testimonial = () => {
   const [testimonials, setTestimonials] = useState([]);
@@ -21,62 +22,88 @@ const Testimonial = () => {
     }
   };
 
-  useEffect(() => { fetchTestimonials(); }, []);
+  useEffect(() => { 
+    fetchTestimonials(); 
+  }, []);
 
-  if (loading) return <p className="text-center py-10">Loading testimonials…</p>;
-  if (!testimonials.length) return <p className="text-center py-16">No testimonials yet.</p>;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-20">
+        <div className="animate-pulse text-amber-800/60 text-lg">Loading testimonials...</div>
+      </div>
+    );
+  }
+  
+  if (!testimonials.length) {
+    return (
+      <div className="flex justify-center items-center py-20">
+        <p className="text-amber-800/70 italic">No testimonials yet.</p>
+      </div>
+    );
+  }
 
   const single = testimonials.length === 1;
 
   return (
-    <section className="py-12 bg-[#fffdf5]">
+    <section className="py-16 bg-white">
       <div className="max-w-6xl mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-10">Happy Customers</h2>
-
-        {/* If only one item, center it; else use responsive auto-fit grid */}
-        <div
-          className={
-            single
-              ? "flex justify-center"
-              : "grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]"
-          }
+        <motion.h2 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-3xl md:text-4xl font-serif font-light text-amber-900 mb-8 text-center flex items-center justify-center gap-2"
         >
+          Happy{" "}
+          <span className="text-amber-700 flex items-center gap-2">
+            Customers <FaRegSmile className="w-7 h-7 text-amber-600" />
+          </span>
+        </motion.h2>
+
+        <div className={single ? "flex justify-center" : "grid gap-6 md:gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3"}>
           {testimonials.map((t, idx) => (
             <motion.div
               key={t._id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.06 }}
-              className="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition w-full max-w-md"
+              transition={{ delay: idx * 0.1, duration: 0.4 }}
+              whileHover={{ y: -5 }}
+              className="bg-white p-6 rounded-xl border border-amber-100 shadow-sm hover:shadow-md transition-all duration-300 w-full max-w-md mx-auto"
             >
-              <div className="flex items-center mb-4">
+              <div className="flex items-start mb-4">
                 {t.avatarUrl ? (
                   <img
                     src={t.avatarUrl}
                     alt={t.customerName}
-                    className="w-12 h-12 rounded-full object-cover mr-3"
+                    className="w-12 h-12 rounded-full object-cover mr-4 border border-amber-200"
                   />
                 ) : (
-                  <div className="w-12 h-12 rounded-full bg-gray-200 mr-3 grid place-items-center text-gray-500">
-                    <span className="text-sm">{t.customerName?.[0] || "U"}</span>
+                  <div className="w-12 h-12 rounded-full bg-amber-100 mr-4 grid place-items-center text-amber-700 border border-amber-200">
+                    <span className="text-sm font-medium">{t.customerName?.[0] || "U"}</span>
                   </div>
                 )}
                 <div>
-                  <h3 className="font-semibold">{t.customerName}</h3>
-                  {t.location && <p className="text-xs text-gray-500">{t.location}</p>}
+                  <h3 className="font-medium text-gray-900">{t.customerName}</h3>
+                  {t.location && <p className="text-xs text-gray-500 mt-1">{t.location}</p>}
                 </div>
               </div>
 
-              {t.rating ? (
-                <p className="mb-2" aria-label={`Rating ${t.rating} out of 5`}>
-                  {"⭐".repeat(t.rating)}
-                </p>
-              ) : null}
+              {t.rating && (
+                <div className="flex mb-3" aria-label={`Rating ${t.rating} out of 5`}>
+                  {[...Array(5)].map((_, i) => (
+                    <FaStar 
+                      key={i} 
+                      className={`w-4 h-4 ${i < t.rating ? 'text-amber-400' : 'text-gray-300'}`} 
+                    />
+                  ))}
+                </div>
+              )}
 
-              <p className="text-gray-700 italic line-clamp-5">“{t.content}”</p>
+              <p className="text-gray-700 leading-relaxed italic mb-4">"{t.content}"</p>
 
               {t.productName && (
-                <p className="text-sm text-gray-500 mt-3">For: {t.productName}</p>
+                <p className="text-xs text-amber-700 font-medium mt-4 pt-3 border-t border-amber-100">
+                  For: {t.productName}
+                </p>
               )}
             </motion.div>
           ))}

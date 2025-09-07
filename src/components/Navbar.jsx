@@ -54,7 +54,7 @@ const Navbar = () => {
 
                 {/* 👇 New glowing badge for Collections */}
                 {link.badge && (
-                  <span className="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-[#D87D8F] rounded-full animate-pulse shadow-md">
+                  <span className="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-gradient-to-r from-amber-700 to-orange-700 rounded-full animate-pulse shadow-md">
                     {link.badge}
                   </span>
                 )}
@@ -70,7 +70,7 @@ const Navbar = () => {
             >
               <CiShoppingCart className="h-6 w-6 text-gray-700 group-hover:text-[#D87D8F]" />
               {getCartCount() > 0 && (
-                <span className="absolute -top-0 -right-0 w-5 h-5 bg-[#D87D8F] text-white text-xs font-bold rounded-full flex items-center justify-center shadow-sm z-10">
+                <span className="absolute -top-0 -right-0 w-5 h-5 bg-black text-white text-xs font-bold rounded-full flex items-center justify-center shadow-sm z-10">
                   {getCartCount()}
                 </span>
               )}
@@ -96,7 +96,7 @@ const Navbar = () => {
 
               {/* 👇 Mobile badge */}
               {link.badge && (
-                <span className="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-[#D87D8F] rounded-full animate-pulse shadow-md">
+                <span className="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-gradient-to-r from-amber-700 to-orange-700 rounded-full animate-pulse shadow-md">
                   {link.badge}
                 </span>
               )}

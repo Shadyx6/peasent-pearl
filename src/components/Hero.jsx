@@ -63,10 +63,10 @@ export default function Hero() {
         <motion.h1
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-4xl sm:text-5xl md:text-6xl font-serif font-normal text-gray-900 leading-tight tracking-tight"
+          className="text-4xl sm:text-5xl md:text-6xl font-serif font-light text-amber-900 leading-tight tracking-tight"
         >
           Discover{" "}
-          <span className="font-bold text-transparent bg-clip-text bg-[#D87D8F]">
+          <span className=" bg-gradient-to-r from-amber-700 to-orange-700 bg-clip-text text-transparent">
             Elegance
           </span>{" "}
           in Every Detail
@@ -88,7 +88,7 @@ export default function Hero() {
         >
           <button
             onClick={() => navigate("/collection")}
-            className="px-8 py-4 rounded-lg font-medium text-white bg-[#D87D8F] shadow-lg hover:shadow-xl transition-all duration-300 hover:from-rose-800 hover:to-pink-700"
+            className="px-8 py-4 rounded-lg font-medium text-white bg-gradient-to-r from-amber-700 to-orange-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:from-amber-700 hover:to-amber-700"
           >
             Shop Collection
           </button>

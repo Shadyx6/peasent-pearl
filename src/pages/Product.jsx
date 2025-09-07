@@ -110,7 +110,7 @@ const Product = () => {
                 <FiZoomIn className="text-amber-700" />
               </button>
               {discountPercentage > 0 && (
-                <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold">
+                <div className="absolute top-4 left-4 bg-green-600 text-white px-3 py-1 rounded-full text-sm font-bold">
                   -{discountPercentage}%
                 </div>
               )}
@@ -278,7 +278,7 @@ const Product = () => {
                   className={`flex-1 py-4 rounded-xl font-semibold flex items-center justify-center space-x-3 transition-all ${
                     !selectedVariant || product.stock <= 0
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : " bg-[#D87D8F] text-white hover:from-pink-700 hover:to-rose-700 shadow-lg hover:shadow-xl"
+                      : "  bg-gradient-to-r from-amber-700 to-orange-700 text-white hover:from-amber-700 hover:to-amber-700 shadow-lg hover:shadow-xl"
                   }`}
                 >
                   <FiShoppingCart />

@@ -115,8 +115,8 @@ const Collection = () => {
           variants={fadeIn}
           className="mb-12 text-center"
         >
-          <h1 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 mb-4">
-            What's <span className="bg-[#D87D8F] bg-clip-text text-transparent">New</span>
+          <h1 className="text-4xl md:text-5xl font-serif  text-amber-900 mb-4">
+            What's <span className="bg-gradient-to-r from-amber-700 to-orange-700 bg-clip-text text-transparent">New</span>
           </h1>
           <p className="text-gray-600 max-w-2xl mx-auto text-lg">
             Discover timeless pieces crafted with precision and passion
@@ -134,7 +134,7 @@ const Collection = () => {
             {/* Mobile Filter Toggle */}
             <button
               onClick={() => setShowFilter(!showFilter)}
-              className="lg:hidden flex items-center gap-3 mb-6 bg-[#D87D8F] text-white px-6 py-3.5 rounded-xl font-medium w-full justify-center shadow-lg hover:shadow-xl transition-all"
+              className="lg:hidden flex items-center gap-3 mb-6 bg-amber-800 text-white px-6 py-3.5 rounded-xl font-medium w-full justify-center shadow-lg hover:shadow-xl transition-all"
             >
               <RiFilterLine className="text-lg" />
               FILTERS {activeFilters > 0 && `(${activeFilters})`}

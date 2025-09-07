@@ -70,7 +70,7 @@ const About = () => {
                 className="h-24 md:h-28 w-auto object-contain filter drop-shadow-md"
               />
               <motion.div 
-                className="absolute -inset-4 bg-gradient-to-r from-pink-400/20 to-rose-400/20 rounded-full blur-md -z-10"
+                className="absolute -inset-4 bg-gradient-to-r from-amber-400/30 to-amber-400/20 rounded-full blur-md -z-10"
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
@@ -81,8 +81,8 @@ const About = () => {
 
           {/* Subheading */}
           <motion.div variants={item} className="mb-4">
-            <span className="text-xs font-semibold uppercase tracking-wider text-rose-700 bg-gradient-to-r from-pink-50 to-rose-50 px-4 py-2 rounded-full border border-pink-100 shadow-sm inline-flex items-center">
-              <span className="w-2 h-2 bg-rose-500 rounded-full mr-2 animate-pulse"></span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-white bg-gradient-to-r from-amber-300 to-orange-700 px-4 py-2 rounded-full border border-pink-100 shadow-sm inline-flex items-center">
+              <span className="w-2 h-2 bg-gray-200 rounded-full mr-2 animate-pulse"></span>
               Our Story
             </span>
           </motion.div>
@@ -90,9 +90,9 @@ const About = () => {
           {/* Heading */}
           <motion.h2
             variants={item}
-            className="text-3xl md:text-4xl font-serif font-bold text-gray-900 mb-6"
+            className="text-3xl md:text-4xl font-serif font-light text-amber-900 mb-6"
           >
-            Crafting <span className="bg-[#D87D8F] bg-clip-text text-transparent">Elegance</span>, Since 2023
+            Crafting <span className="text-amber-900 bg-clip-text">Elegance</span>, Since 2023
           </motion.h2>
 
           {/* Short description */}
@@ -100,7 +100,7 @@ const About = () => {
             variants={item}
             className="text-gray-700 max-w-2xl mx-auto mb-8 text-lg leading-relaxed font-light"
           >
-            At <span className="font-medium text-rose-700">Pleasant Pearl</span>, 
+            At <span className="font-medium text-amber-700">Pleasant Pearl</span>, 
             we blend traditional craftsmanship with modern design to create exquisite jewelry 
             that tells your unique story — timeless, elegant, and meticulously crafted with passion.
           </motion.p>
@@ -117,7 +117,7 @@ const About = () => {
                   boxShadow: "0 10px 25px rgba(236, 72, 153, 0.2)"
                 }}
                 whileTap={{ scale: 0.95 }}
-                className="px-8 py-3.5 bg-[#D87D8F] text-white rounded-full font-semibold hover:from-pink-700 hover:to-rose-700 transition-all duration-300 shadow-lg flex items-center gap-2"
+                className="px-8 py-3.5 bg-gradient-to-r from-amber-700 to-orange-700 text-white rounded-full font-semibold hover:from-pink-700 hover:to-rose-700 transition-all duration-300 shadow-lg flex items-center gap-2"
               >
                 Explore Collection
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
