@@ -47,7 +47,7 @@ const Navbar = () => {
                 to={link.path}
                 className={({ isActive }) => `
                   relative px-3 py-2 text-sm font-medium flex items-center
-                  ${isActive ? 'text-[#D87D8F]' : 'text-gray-700 hover:text-[#D87D8F]'}
+                  ${isActive ? 'text-amber-900' : 'text-gray-700 hover:text-amber-700'}
                 `}
               >
                 {link.name}
@@ -89,7 +89,7 @@ const Navbar = () => {
               onClick={() => setIsMenuOpen(false)}
               className={({ isActive }) => `
                 flex items-center justify-between px-3 py-2 rounded-md text-base font-medium
-                ${isActive ? 'bg-[#D87D8F]/10 text-[#D87D8F]' : 'text-gray-700 hover:bg-gray-100'}
+                ${isActive ? 'bg-[#D87D8F]/10 text-amber-900' : 'text-gray-700 hover:bg-gray-100'}
               `}
             >
               {link.name}
