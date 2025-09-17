@@ -115,8 +115,8 @@ const LatestCollection = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 sm:gap-8">
-          {[...Array(5)].map((_, index) => (
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6 md:gap-8">
+          {[...Array(10)].map((_, index) => (
             <div key={index} className="group overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-sm">
               <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden relative rounded-t-2xl">
                 <motion.div
@@ -132,7 +132,7 @@ const LatestCollection = () => {
                   />
                 </motion.div>
               </div>
-              <div className="p-5">
+              <div className="p-4 sm:p-5">
                 <div className="h-5 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full mb-3 overflow-hidden relative">
                   <motion.div
                     variants={shimmerVariant}
@@ -172,7 +172,7 @@ const LatestCollection = () => {
   if (products.length === 0) {
     return (
       <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
-        <div className="bg-gradient-to-br from-pink-50 to-rose-50 rounded-2xl p-12">
+        <div className="bg-gradient-to-br from-pink-50 to-rose-50 rounded-2xl p-8 md:p-12">
           <h3 className="text-xl font-semibold text-gray-800 mb-4">No products available</h3>
           <p className="text-gray-600 mb-6">Check back soon for our latest collection</p>
           <Link to="/">
@@ -191,12 +191,11 @@ const LatestCollection = () => {
       whileInView="visible"
       viewport={{ once: true, margin: "-50px" }}
       variants={containerVariants}
-      className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto"
+      className="py-16 md:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto"
     >
       {/* Heading */}
-      <motion.div variants={fadeInUp} className="text-center mb-14">
-        
-        <h2 className="text-3xl md:text-3xl lg:text-4xl font-serif  text-amber-900 mb-4">
+      <motion.div variants={fadeInUp} className="text-center mb-10 md:mb-14">
+        <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif text-amber-900 mb-4">
           Latest <span className="bg-gradient-to-r from-amber-700 to-orange-700 bg-clip-text text-transparent">Collection ✨</span>
         </h2>
         <p className="text-sm md:text-base text-gray-600 max-w-2xl mx-auto">
@@ -204,45 +203,43 @@ const LatestCollection = () => {
         </p>
       </motion.div>
 
-      {/* Products */}
-      {/* Products */}
-<motion.div 
-  className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8 overflow-x-auto sm:overflow-visible"
->
-  {latestProducts.map((item, index) => (
-    <motion.div 
-      key={item._id} 
-      variants={itemVariants}
-      custom={index}
-      whileHover={{ y: -5 }}
-      transition={{ duration: 0.2 }}
-      className="min-w-[250px] sm:min-w-0" // ensures scrollable cards on mobile this is latest coll
-    >
-      <ProductItem
-        id={item._id}
-        image={
-          item.variants?.[0]?.images?.[0] ||
-          (Array.isArray(item.image) ? item.image[0] : item.image) ||
-          "/fallback.jpg"
-        }
-        name={item.name}
-        price={item.price}
-        finalPrice={item.finalPrice}
-        stock={
-          item.variants?.some((v) => v.stock > 0) ? 1 : item.stock || 0
-        }
-        badgeType="new" // i just want
-      />
-    </motion.div>
-  ))}
-</motion.div>
-
+      {/* Products Grid - 2 columns on mobile */}
+      <motion.div 
+        className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6 md:gap-8"
+      >
+        {latestProducts.map((item, index) => (
+          <motion.div 
+            key={item._id} 
+            variants={itemVariants}
+            custom={index}
+            whileHover={{ y: -5 }}
+            transition={{ duration: 0.2 }}
+            className="w-full"
+          >
+            <ProductItem
+              id={item._id}
+              image={
+                item.variants?.[0]?.images?.[0] ||
+                (Array.isArray(item.image) ? item.image[0] : item.image) ||
+                "/fallback.jpg"
+              }
+              name={item.name}
+              price={item.price}
+              finalPrice={item.finalPrice}
+              stock={
+                item.variants?.some((v) => v.stock > 0) ? 1 : item.stock || 0
+              }
+              badgeType="new"
+            />
+          </motion.div>
+        ))}
+      </motion.div>
 
       {/* Button */}
       {latestProducts.length > 0 && (
         <motion.div 
           variants={fadeInUp} 
-          className="text-center mt-16"
+          className="text-center mt-12 md:mt-16"
           whileHover={{ scale: 1.02 }}
           transition={{ type: "spring", stiffness: 400, damping: 10 }}
         >
@@ -253,7 +250,7 @@ const LatestCollection = () => {
                 boxShadow: "0 10px 25px rgba(236, 72, 153, 0.2)",
               }}
               whileTap={{ scale: 0.95 }}
-              className="px-10 py-4 bg-gradient-to-r from-amber-700 to-orange-700 text-white rounded-full font-semibold hover:from-pink-700 hover:to-rose-700 transition-all duration-300 shadow-lg hover:shadow-xl relative overflow-hidden group"
+              className="px-8 md:px-10 py-3 md:py-4 bg-gradient-to-r from-amber-700 to-orange-700 text-white rounded-full font-semibold hover:from-pink-700 hover:to-rose-700 transition-all duration-300 shadow-lg hover:shadow-xl relative overflow-hidden group text-sm md:text-base"
             >
               <span className="relative z-10">Explore All Collections</span>
               <span className="absolute inset-0 bg-gradient-to-r from-amber-700 to-orange-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>

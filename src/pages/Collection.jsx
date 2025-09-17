@@ -86,22 +86,6 @@ const Collection = () => {
     applyFilter();
   }, [products, selectedCategories, sortOption, priceRange, applyFilter]);
 
-  // Optional debug - uncomment to inspect how categories are stored in your products
-  /*
-  useEffect(() => {
-    if (products?.length) {
-      console.table(
-        products.map((p) => ({
-          id: p._id,
-          name: p.name,
-          category: typeof p.category === 'object' ? JSON.stringify(p.category) : p.category,
-          subcategory: p.subcategory
-        }))
-      );
-    }
-  }, [products]);
-  */
-
   const clearAllFilters = () => {
     setSelectedCategories([]);
     setPriceRange([0, 1000]);
@@ -145,23 +129,23 @@ const Collection = () => {
   };
 
   return (
-    <div className="min-h-screen ">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12">
+    <div className="min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-12">
         {/* Header */}
-        <motion.div initial="hidden" animate="visible" variants={fadeIn} className="mb-12 text-center">
-          <h1 className="text-4xl md:text-5xl font-serif  text-amber-900 mb-4">
+        <motion.div initial="hidden" animate="visible" variants={fadeIn} className="mb-8 md:mb-12 text-center">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif text-amber-900 mb-4">
             What's <span className="bg-gradient-to-r from-amber-700 to-orange-700 bg-clip-text text-transparent">New</span>
           </h1>
-          <p className="text-gray-600 max-w-2xl mx-auto text-lg">Discover timeless pieces crafted with precision and passion</p>
+          <p className="text-gray-600 max-w-2xl mx-auto text-base md:text-lg">Discover timeless pieces crafted with precision and passion</p>
         </motion.div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
           {/* Filter Sidebar */}
-          <motion.div initial="hidden" animate="visible" variants={fadeIn} className="lg:w-80">
+          <motion.div initial="hidden" animate="visible" variants={fadeIn} className="lg:w-72 xl:w-80">
             {/* Mobile Filter Toggle */}
             <button
               onClick={() => setShowFilter(!showFilter)}
-              className="lg:hidden flex items-center gap-3 mb-6 bg-amber-800 text-white px-6 py-3.5 rounded-xl font-medium w-full justify-center shadow-lg hover:shadow-xl transition-all"
+              className="lg:hidden flex items-center gap-3 mb-4 bg-amber-800 text-white px-5 py-3 rounded-xl font-medium w-full justify-center shadow-lg hover:shadow-xl transition-all"
             >
               <RiFilterLine className="text-lg" />
               FILTERS {activeFilters > 0 && `(${activeFilters})`}
@@ -175,10 +159,10 @@ const Collection = () => {
                   animate="visible"
                   exit="hidden"
                   variants={filterSlide}
-                  className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 lg:sticky lg:top-24"
+                  className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-5 md:p-6 lg:sticky lg:top-24"
                 >
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="font-semibold text-gray-900 text-lg flex items-center gap-2">
+                  <div className="flex items-center justify-between mb-5 md:mb-6">
+                    <h3 className="font-semibold text-gray-900 text-base md:text-lg flex items-center gap-2">
                       <RiFilterLine className="text-pink-600" />
                       Refine Collection
                     </h3>
@@ -190,12 +174,12 @@ const Collection = () => {
                   </div>
 
                   {/* Categories */}
-                  <div className="mb-8">
-                    <h4 className="text-sm font-semibold text-gray-800 mb-4 uppercase tracking-wider flex items-center gap-2">
+                  <div className="mb-6 md:mb-8">
+                    <h4 className="text-sm font-semibold text-gray-800 mb-3 md:mb-4 uppercase tracking-wider flex items-center gap-2">
                       <RiPriceTag3Line className="text-pink-500" />
                       Categories
                     </h4>
-                    <div className="space-y-3">
+                    <div className="space-y-2 md:space-y-3">
                       {categories.map((cat) => {
                         const catNorm = normalize(cat.name ?? cat); // handle when cat could be string/object
                         const isExpanded = selectedCategories.includes(catNorm);
@@ -248,9 +232,9 @@ const Collection = () => {
                   </div>
 
                   {/* Price Range */}
-                  <div className="mb-6">
-                    <h4 className="text-sm font-semibold text-gray-800 mb-4 uppercase tracking-wider">Price Range</h4>
-                    <div className="space-y-4">
+                  <div className="mb-5 md:mb-6">
+                    <h4 className="text-sm font-semibold text-gray-800 mb-3 md:mb-4 uppercase tracking-wider">Price Range</h4>
+                    <div className="space-y-3 md:space-y-4">
                       <input
                         type="range"
                         min="0"
@@ -282,13 +266,13 @@ const Collection = () => {
           {/* Products Grid */}
           <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="flex-1">
             {/* Results Header */}
-            <motion.div variants={fadeIn} className="flex flex-col sm:flex-row justify-between items-center mb-8 bg-white/80 backdrop-blur-sm p-6 rounded-2xl border border-white/20 shadow-sm">
-              <p className="text-gray-700 mb-3 sm:mb-0">
+            <motion.div variants={fadeIn} className="flex flex-col sm:flex-row justify-between items-center mb-6 bg-white/80 backdrop-blur-sm p-4 md:p-6 rounded-2xl border border-white/20 shadow-sm">
+              <p className="text-gray-700 mb-3 sm:mb-0 text-sm md:text-base">
                 Showing <span className="font-semibold text-gray-900">{filterProducts.length}</span> {filterProducts.length === 1 ? "product" : "products"}
               </p>
               <div className="flex items-center gap-3">
                 <span className="text-sm text-gray-600">Sort by:</span>
-                <select onChange={(e) => setSortOption(e.target.value)} value={sortOption} className="border border-gray-200 text-sm px-4 py-2.5 rounded-xl bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all">
+                <select onChange={(e) => setSortOption(e.target.value)} value={sortOption} className="border border-gray-200 text-sm px-3 md:px-4 py-2 rounded-xl bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all">
                   <option value="relevant">Relevant</option>
                   <option value="newest">Newest First</option>
                   <option value="low-high">Price: Low to High</option>
@@ -297,9 +281,9 @@ const Collection = () => {
               </div>
             </motion.div>
 
-            {/* Products Grid */}
+            {/* Products Grid - 2 columns on mobile */}
             {filterProducts.length > 0 ? (
-              <motion.div variants={staggerContainer} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <motion.div variants={staggerContainer} className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                 {filterProducts.map((item) => (
                   <motion.div key={item._id} variants={fadeIn} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100">
                     <ProductItem
@@ -315,14 +299,14 @@ const Collection = () => {
                 ))}
               </motion.div>
             ) : (
-              <motion.div variants={fadeIn} className="text-center py-16 bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20">
+              <motion.div variants={fadeIn} className="text-center py-12 md:py-16 bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20">
                 <div className="max-w-md mx-auto">
-                  <div className="w-20 h-20 bg-gradient-to-r from-pink-100 to-rose-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <RiFilterLine className="text-3xl text-pink-600" />
+                  <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-r from-pink-100 to-rose-100 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
+                    <RiFilterLine className="text-2xl md:text-3xl text-pink-600" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">No products found</h3>
-                  <p className="text-gray-600 mb-6">Try adjusting your filters or browse our full collection</p>
-                  <button onClick={clearAllFilters} className="bg-gradient-to-r from-pink-600 to-rose-600 text-white px-8 py-3 rounded-xl font-medium hover:from-pink-700 hover:to-rose-700 transition-all shadow-lg hover:shadow-xl">
+                  <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2 md:mb-3">No products found</h3>
+                  <p className="text-gray-600 mb-4 md:mb-6 text-sm md:text-base">Try adjusting your filters or browse our full collection</p>
+                  <button onClick={clearAllFilters} className="bg-gradient-to-r from-pink-600 to-rose-600 text-white px-6 md:px-8 py-2 md:py-3 rounded-xl font-medium hover:from-pink-700 hover:to-rose-700 transition-all shadow-lg hover:shadow-xl text-sm md:text-base">
                     Reset Filters
                   </button>
                 </div>
