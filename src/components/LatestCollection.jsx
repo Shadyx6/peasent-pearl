@@ -115,7 +115,7 @@ const LatestCollection = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 md:gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 sm:gap-8">
           {[...Array(5)].map((_, index) => (
             <div key={index} className="group overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-sm">
               <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden relative rounded-t-2xl">
