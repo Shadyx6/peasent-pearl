@@ -97,7 +97,13 @@ const LatestCollection = () => {
       )}
 
       {/* optional CTA */}
-     
+      <div className="text-center mt-8">
+        <Link to="/collection">
+          <button className="px-6 py-2 rounded-full bg-amber-600 text-white hover:bg-amber-700 transition">
+            View Full Collection
+          </button>
+        </Link>
+      </div>
     </motion.section>
   );
 };
