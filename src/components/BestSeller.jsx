@@ -195,7 +195,7 @@ const BestSeller = () => {
           <span className="text-sm font-medium text-amber-700">Customer Favorites</span>
         </div>
         
-        <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-light text-amber-900 mb-4">
+        <h2 className="text-2xl md:text-3xl lg:text-4xl font-serif font-light text-amber-900 mb-4">
           Our <span className="bg-gradient-to-r from-amber-700 to-orange-700 bg-clip-text text-transparent">Bestseller 🎀</span>
         </h2>
         
@@ -242,19 +242,7 @@ const BestSeller = () => {
           whileHover={{ scale: 1.02 }}
           transition={{ type: "spring", stiffness: 400, damping: 10 }}
         >
-          <Link to="/collection">
-            <motion.button 
-              whileHover={{
-                scale: 1.05,
-                boxShadow: "0 10px 25px rgba(245, 158, 11, 0.2)",
-              }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 md:px-10 py-3 md:py-4 bg-gradient-to-r from-amber-700 to-orange-700 text-white rounded-full font-semibold hover:from-amber-700 hover:to-orange-700 transition-all duration-300 shadow-lg hover:shadow-xl relative overflow-hidden group text-sm md:text-base"
-            >
-              <span className="relative z-10">Shop All Bestsellers</span>
-              <span className="absolute inset-0 bg-gradient-to-r from-amber-700 to-orange-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-            </motion.button>
-          </Link>
+          
         </motion.div>
       )}
     </motion.section>

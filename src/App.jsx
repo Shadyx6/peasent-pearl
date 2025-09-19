@@ -16,6 +16,7 @@ import TermsConditions from './components/TermsConditions';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import ScrollToTop from './components/ScrollToTop'; // 👈 Import
 import Testimonial from './pages/Testimonial';
+import BestSeller from './components/BestSeller';
 const App = () => {
   return (
     <div className="min-h-screen flex flex-col">
@@ -37,6 +38,7 @@ const App = () => {
           <Route path="/terms-conditions" element={<TermsConditions />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/testimonials" element={<Testimonial />} />
+          <Route path="/bestseller" element={<BestSeller />} />
         </Routes>
       </main>
 

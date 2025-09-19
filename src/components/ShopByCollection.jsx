@@ -66,20 +66,10 @@ const ShopByCollection = ({ className = "" }) => {
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
         >
-          <h2 className="text-3xl md:text-4xl lg:text-5xl text-gray-900 mb-4 contact-heading">
-            Shop By{" "}
-            <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Collection ➢
-            </span>
-          </h2>
-          <motion.p
-            className="text-gray-600 max-w-2xl mx-auto"
-            initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-          >
-            Explore our unique categories and find your perfect funky style
-          </motion.p>
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-serif text-amber-900 mb-4">
+          Shop By <span className="bg-gradient-to-r from-amber-700 to-orange-700 bg-clip-text text-transparent">Collection ✨</span>
+        </h2>
+         
         </motion.div>
 
         {/* Category Circles */}
@@ -124,7 +114,7 @@ const ShopByCollection = ({ className = "" }) => {
         >
           <Link
             to="/collection"
-            className="inline-flex items-center px-6 py-3 rounded-full font-bold text-white bg-gradient-to-r from-purple-500 to-pink-500 shadow-md hover:shadow-lg hover:from-purple-600 hover:to-pink-600 transition-all duration-300"
+            className="inline-flex items-center px-6 py-3 rounded-full font-bold text-white  bg-gradient-to-r from-amber-700 to-orange-700 shadow-md  transition-all duration-300"
           >
             View All Collections
             <svg
