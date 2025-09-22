@@ -18,6 +18,8 @@ import ScrollToTop from './components/ScrollToTop'; // 👈 Import
 import Testimonial from './pages/Testimonial';
 import BestSeller from './components/BestSeller';
 import OurPolicy from './components/OurPolicy';
+import 'react-phone-input-2/lib/style.css';
+
 const App = () => {
   return (
     <div className="min-h-screen flex flex-col">

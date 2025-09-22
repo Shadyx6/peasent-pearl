@@ -1,37 +1,24 @@
-// src/pages/PlaceOrder.jsx
+
 import React, { useContext, useState, useEffect } from "react";
 import { ShopContext } from "../context/ShopContext";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import PhoneInput from "react-phone-input-2";
 
-/* Improved Modal component */
+/* Modal Component (same as yours) */
 const Modal = ({ open, title, children, onClose, onConfirm, confirmLabel = "OK" }) => {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose}></div>
-      <motion.div
-        initial={{ scale: 0.98, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="relative z-10 max-w-lg w-full bg-white rounded-lg shadow-xl p-6"
-      >
+      <motion.div initial={{ scale: 0.98, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative z-10 max-w-lg w-full bg-white rounded-lg shadow-xl p-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-3">{title}</h3>
         <div className="mb-4 text-gray-600">{children}</div>
         <div className="flex justify-end gap-3">
-          <button 
-            onClick={onClose} 
-            className="px-4 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
-          <button 
-            onClick={onConfirm} 
-            className="px-4 py-2 rounded bg-amber-600 text-white hover:bg-amber-700 transition-colors"
-          >
-            {confirmLabel}
-          </button>
+          <button onClick={onClose} className="px-4 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+          <button onClick={onConfirm} className="px-4 py-2 rounded bg-amber-600 text-white hover:bg-amber-700 transition-colors">{confirmLabel}</button>
         </div>
       </motion.div>
     </div>
@@ -43,18 +30,12 @@ const PlaceOrder = () => {
   const [cartData, setCartData] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const [formErrors, setFormErrors] = useState({});
+
 
   const [form, setForm] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    address: "",
-    city: "",
-    state: "",
-    note: "",
-    paymentMethod: "cod",
-    transactionRef: "",
-    senderLast4: "",
+    name: "", phone: "", email: "", address: "", city: "", state: "", note: "",
+    paymentMethod: "cod", transactionRef: "", senderLast4: "",
   });
 
   const [file, setFile] = useState(null);
@@ -63,52 +44,82 @@ const PlaceOrder = () => {
   const [missingList, setMissingList] = useState([]);
   const [activeStep, setActiveStep] = useState(1);
 
-  const paymentDetails = {
-    bankName: "Allied Bank",
-    accountName: "Ramsha",
-    iban: "PK26UNIL0109000320334964",
-    accountNumber: "0358320334964",
-    jazzNumber: "03082650680",
-  };
+const paymentDetails = {
+  // Bank details (United Bank Limited - UBL)
+  bankName: "United Bank Limited (UBL)",
+  accountName: "Ramsha",
+  accountNumber: "0358320334964",
+  iban: "PK26UNIL0109000320334964",
 
+  // JazzCash
+  jazzName: "Rimshah",
+  jazzNumber: "03082650680",
+
+  // Easypaisa
+  easypaisaName: "Mehak Mushtaq",
+  easypaisaNumber: "03082650680",
+};
+
+
+
+
+  // --- map cartItems (array) -> cartData used by UI & payload
   useEffect(() => {
-    const items = Object.entries(cartItems || {}).map(([key, value]) => {
-      const [productId, variantKey] = key.split("_");
-      const product = products?.find((p) => p._id === productId);
-      if (!product) return null;
+    // cartItems: [ { productId, variantId, variantColor, quantity }, ... ]
+    const items = (cartItems || [])
+      .map((ci) => {
+        if (!ci || !ci.productId) return null;
+        const product = products?.find((p) => String(p._id) === String(ci.productId));
+        if (!product) return null;
 
-      const variant = product.variants?.find((v) => v.color === variantKey);
-      const image = variant?.images?.[0] || product.image || "";
-      const unitPrice = product.finalPrice ?? product.price ?? 0;
-      const quantity = value.quantity ?? 1;
+        // find variant by id first, fallback to color
+        let variant = null;
+        if (ci.variantId) {
+          variant = product.variants?.find((v) => String(v._id) === String(ci.variantId));
+        }
+        if (!variant && ci.variantColor) {
+          variant = product.variants?.find((v) => (v.color || "").toLowerCase() === String(ci.variantColor).toLowerCase());
+        }
 
-      return {
-        _id: key,
-        productId,
-        name: product.name,
-        image,
-        variant: variantKey || "",
-        unitPrice,
-        quantity,
-        total: unitPrice * quantity,
-      };
-    }).filter(Boolean);
+        const image = variant?.images?.[0] || product.image || "";
+        const unitPrice = product.finalPrice ?? product.price ?? 0;
+        const quantity = Math.max(0, Number(ci.quantity || 0));
+
+        return {
+          // _id used in your UI as a key (composite)
+          _id: `${ci.productId}_${ci.variantId || ci.variantColor || "default"}`,
+          productId: ci.productId,
+          name: product.name,
+          image,
+          variant: variant ? (variant.color || variant._id) : (ci.variantColor || ci.variantId || ""),
+          unitPrice,
+          quantity,
+          total: unitPrice * quantity,
+          rawProduct: product, // helpful for debug if needed
+        };
+      })
+      .filter(Boolean);
 
     setCartData(items);
   }, [cartItems, products]);
 
-  const subtotal = cartData.reduce((s, it) => s + it.total, 0);
-  const shipping = Number(delivery_fee ?? 0);
-  const total = subtotal + shipping;
+const subtotal = cartData.reduce((s, it) => s + (Number(it.total) || 0), 0);
+const shipping = subtotal >= 3000 ? 0 : Number(delivery_fee || 0);
+const total = subtotal + shipping;
+
   const advanceAmount = form.paymentMethod === "cod" ? Math.round(total / 2) : total;
 
   const handleInput = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    if (type === "radio") {
+      setForm((p) => ({ ...p, [name]: value }));
+    } else {
+      setForm((p) => ({ ...p, [name]: value }));
+    }
   };
 
   const handleFile = (e) => {
-    const f = e.target.files[0];
+    const f = e.target.files?.[0];
     if (!f) return;
     const allowed = ["image/jpeg", "image/png", "application/pdf"];
     if (!allowed.includes(f.type)) {
@@ -120,7 +131,6 @@ const PlaceOrder = () => {
       return;
     }
     setFile(f);
-
     if (f.type.startsWith("image/")) {
       const url = URL.createObjectURL(f);
       setFilePreviewUrl(url);
@@ -141,7 +151,7 @@ const PlaceOrder = () => {
     try {
       await navigator.clipboard.writeText(text);
       toast.success("Copied to clipboard");
-    } catch (err) {
+    } catch {
       toast.error("Failed to copy");
     }
   };
@@ -159,29 +169,25 @@ const PlaceOrder = () => {
     if (form.transactionRef) fd.append("transactionRef", form.transactionRef);
     if (form.senderLast4) fd.append("senderLast4", form.senderLast4);
     const url = `${import.meta.env.VITE_BACKEND_URL}/api/order/upload-proof`;
-    return axios.post(url, fd, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    return axios.post(url, fd, { headers: { "Content-Type": "multipart/form-data" } });
   };
 
   const getMissingFields = () => {
     const missing = [];
     if (!file) missing.push("Payment screenshot (required)");
-    if (!form.transactionRef || form.transactionRef.trim().length < 3)
-      missing.push("Transaction reference (enter the code from your bank/app)");
-    if (!form.senderLast4 || form.senderLast4.trim().length !== 4)
-      missing.push("Last 4 digits of sender account/phone");
+    if (!form.transactionRef || form.transactionRef.trim().length < 3) missing.push("Transaction reference");
+    if (!form.senderLast4 || form.senderLast4.trim().length !== 4) missing.push("Last 4 digits of sender account/phone");
     return missing;
   };
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
-
     if (cartData.length === 0) {
       toast.error("Your cart is empty.");
       return;
     }
 
+    // For these payment types we require proof fields
     if (["cod", "bank", "jazz"].includes(form.paymentMethod)) {
       const missing = getMissingFields();
       if (missing.length > 0) {
@@ -193,6 +199,18 @@ const PlaceOrder = () => {
 
     setIsSubmitting(true);
     try {
+      // Build items payload consistent with your server expectation
+      const itemsPayload = cartData.map((it) => ({
+        productId: it.productId,
+        key: it._id,
+        name: it.name,
+        image: it.image,
+        variant: it.variant, // this is color string if available — server decrement-stock expects color
+        quantity: Number(it.quantity),
+        unitPrice: Number(it.unitPrice),
+        total: Number(it.total),
+      }));
+
       const orderPayload = {
         name: form.name,
         phone: form.phone,
@@ -204,50 +222,59 @@ const PlaceOrder = () => {
         paymentMethod: form.paymentMethod,
         transactionRef: form.transactionRef,
         senderLast4: form.senderLast4,
-        items: cartData.map((it) => ({
-          productId: it.productId,
-          key: it._id,
-          name: it.name,
-          image: it.image,
-          variant: it.variant,
-          quantity: it.quantity,
-          unitPrice: it.unitPrice,
-          total: it.total,
-        })),
+        items: itemsPayload,
         subtotal,
         shipping,
         total,
         advanceRequired: advanceAmount,
-        paymentInstructions: {
-          bank: paymentDetails,
-        },
+        paymentInstructions: { bank: paymentDetails },
       };
 
       const res = await createOrderOnBackend(orderPayload);
       if (!res?.data?.success) throw new Error(res?.data?.message || "Order creation failed");
 
-      const orderId = res.data.orderId;
+      const orderId = res.data.orderId || res.data.order?._id || res.data.order?.id;
+      // upload proof if any
       await uploadProofToBackend(orderId);
 
-      toast.success("Order placed successfully! We'll verify your payment shortly.");
-clearCart();
+      // Decrement stock for each item (use `variant` value which is a color string in our mapping)
+      const decPromises = itemsPayload.map((it) =>
+        axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/product/decrement-stock`, {
+          productId: it.productId,
+          color: String(it.variant || "").trim(),
+          quantity: Number(it.quantity || 0),
+        }).catch((err) => {
+          console.warn("decrement-stock failed for", it.productId, it.variant, err?.message || err);
+        })
+      );
+      await Promise.allSettled(decPromises);
 
-// Pass details via query string
-const q = new URLSearchParams({
-  name: form.name || "Customer",
-  amount: advanceAmount.toFixed(2),  // 👈 this is your 50% or full advance
-  orderId: res.data.orderId || ""    // optional, if you want to show it later
-}).toString();
+      toast.success("Order placed successfully!");
+      clearCart();
 
-navigate(`/thank-you?${q}`);
+      const q = new URLSearchParams({
+        name: form.name || "Customer",
+        amount: advanceAmount.toFixed(2),
+        orderId: orderId || "",
+      }).toString();
 
+      navigate(`/thank-you?${q}`);
+      // reload to refresh any global state if needed
+      setTimeout(() => window.location.reload(), 300);
     } catch (err) {
-      console.error(err);
+      console.error("Place order error:", err);
       toast.error(err?.response?.data?.message || err.message || "Server error while placing order");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // Accepts +923XXXXXXXXX (react-phone-input-2 outputs with +92 always)
+const isValidPakPhone = (p) => {
+  if (!p) return false;
+  return /^\+923\d{9}$/.test(p.toString().trim());
+};
+
 
   const proofRequired = ["cod", "bank", "jazz"].includes(form.paymentMethod);
   const canSubmit = (() => {
@@ -256,13 +283,8 @@ navigate(`/thank-you?${q}`);
     return file && form.transactionRef && form.senderLast4 && form.senderLast4.trim().length === 4;
   })();
 
-  const nextStep = () => {
-    if (activeStep < 3) setActiveStep(activeStep + 1);
-  };
-
-  const prevStep = () => {
-    if (activeStep > 1) setActiveStep(activeStep - 1);
-  };
+  const nextStep = () => { if (activeStep < 3) setActiveStep((s) => s + 1); };
+  const prevStep = () => { if (activeStep > 1) setActiveStep((s) => s - 1); };
 
   // Order Summary Component
   const OrderSummary = () => (
@@ -401,15 +423,40 @@ navigate(`/thank-you?${q}`);
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                        <input 
-                          name="phone" 
-                          value={form.phone} 
-                          onChange={handleInput} 
-                          required 
-                          className="w-full p-3 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500" 
-                        />
-                      </div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+  <PhoneInput
+    country={"pk"}
+    onlyCountries={["pk"]}
+    disableDropdown={true}
+    countryCodeEditable={false}
+    value={form.phone}
+    onChange={(value) => {
+      const formatted = value.startsWith("+") ? value : `+${value}`;
+      setForm((prev) => ({ ...prev, phone: formatted }));
+      // live validation
+      if (!isValidPakPhone(formatted)) {
+        setFormErrors((prev) => ({
+          ...prev,
+          phone: "Please enter a valid Pakistani mobile number.",
+        }));
+      } else {
+        setFormErrors((prev) => ({ ...prev, phone: "" }));
+      }
+    }}
+    inputClass={`w-full p-3 border rounded-md focus:ring-amber-500 focus:border-amber-500 ${
+      formErrors.phone ? "border-red-400" : "border-gray-300"
+    }`}
+    inputProps={{
+      name: "phone",
+      required: true,
+      autoFocus: true,
+    }}
+  />
+  {formErrors.phone && (
+    <p className="text-xs text-red-600 mt-1">{formErrors.phone}</p>
+  )}
+</div>
+
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
                         <input 
@@ -580,7 +627,7 @@ navigate(`/thank-you?${q}`);
                               </div>
                               <div className="text-sm mt-1">IBAN: {paymentDetails.iban}</div>
                               <div className="flex items-center mt-2">
-                                <div className="text-sm flex-1">JazzCash: {paymentDetails.jazzNumber}</div>
+                                <div className="text-sm flex-1">JazzCash ({paymentDetails.jazzName}): {paymentDetails.jazzNumber} </div>
                                 <button 
                                   type="button" 
                                   onClick={() => copyToClipboard(paymentDetails.jazzNumber)} 
@@ -593,37 +640,56 @@ navigate(`/thank-you?${q}`);
                           </>
                         )}
 
-                        {form.paymentMethod === "bank" && (
-                          <div className="bg-amber-50 p-3 rounded-md mb-4">
-                            <div className="text-sm font-medium">{paymentDetails.bankName}</div>
-                            <div className="text-sm">{paymentDetails.accountName}</div>
-                            <div className="flex items-center mt-1">
-                              <div className="text-sm flex-1">Account: {paymentDetails.accountNumber}</div>
-                              <button 
-                                type="button" 
-                                onClick={() => copyToClipboard(paymentDetails.accountNumber)} 
-                                className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition-colors"
-                              >
-                                Copy
-                              </button>
-                            </div>
-                          </div>
-                        )}
+                        {/* COD block stays same above this */}
 
-                        {form.paymentMethod === "jazz" && (
-                          <div className="bg-amber-50 p-3 rounded-md mb-4">
-                            <div className="flex items-center">
-                              <div className="text-sm flex-1">Send to: {paymentDetails.jazzNumber}</div>
-                              <button 
-                                type="button" 
-                                onClick={() => copyToClipboard(paymentDetails.jazzNumber)} 
-                                className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition-colors"
-                              >
-                                Copy
-                              </button>
-                            </div>
-                          </div>
-                        )}
+{form.paymentMethod === "bank" && (
+  <div className="bg-amber-50 p-3 rounded-md mb-4">
+    <div className="text-sm font-medium">{paymentDetails.bankName}</div>
+    <div className="text-sm">{paymentDetails.accountName}</div>
+    <div className="flex items-center mt-1">
+      <div className="text-sm flex-1">Account: {paymentDetails.accountNumber}</div>
+      <button 
+        type="button" 
+        onClick={() => copyToClipboard(paymentDetails.accountNumber)} 
+        className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition-colors"
+      >
+        Copy
+      </button>
+    </div>
+    <div className="text-sm mt-1">IBAN: {paymentDetails.iban}</div>
+  </div>
+)}
+
+{form.paymentMethod === "jazz" && (
+  <div className="bg-amber-50 p-3 rounded-md mb-4">
+    <div className="flex items-center">
+      <div className="text-sm flex-1">
+        JazzCash ({paymentDetails.jazzName}): {paymentDetails.jazzNumber}
+      </div>
+      <button 
+        type="button" 
+        onClick={() => copyToClipboard(paymentDetails.jazzNumber)} 
+        className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition-colors"
+      >
+        Copy
+      </button>
+    </div>
+
+    <div className="flex items-center mt-2">
+      <div className="text-sm flex-1">
+        Easypaisa ({paymentDetails.easypaisaName}): {paymentDetails.easypaisaNumber}
+      </div>
+      <button 
+        type="button" 
+        onClick={() => copyToClipboard(paymentDetails.easypaisaNumber)} 
+        className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition-colors"
+      >
+        Copy
+      </button>
+    </div>
+  </div>
+)}
+
 
                         <div className="mb-4">
                           <label className="block text-sm font-medium text-gray-700 mb-2">Upload Payment Proof</label>

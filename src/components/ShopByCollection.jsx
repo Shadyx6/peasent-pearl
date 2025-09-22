@@ -96,7 +96,7 @@ const ShopByCollection = ({ className = "" }) => {
         </div>
 
         {/* Category Name */}
-        <h4 className="mt-3 text-sm sm:text-base md:text-lg font-semibold text-gray-900 group-hover:text-purple-600 transition-colors capitalize">
+        <h4 className="mt-3 text-sm sm:text-base md:text-lg font-semibold  transition-colors capitalize">
           {cat.name}
         </h4>
       </Link>
