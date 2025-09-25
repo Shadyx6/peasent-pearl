@@ -53,12 +53,13 @@ const Footer = () => {
             <h3 className="text-amber-800 font-medium mb-3 sm:mb-4 text-sm sm:text-base">Quick Links</h3>
             <ul className="space-y-1 sm:space-y-2">
               <li>
-                <Link 
-                  to="/" 
-                  className="text-amber-600 hover:text-amber-800 text-xs sm:text-sm transition-colors"
-                >
-                  Home
-                </Link>
+                 <Link
+    to="/"
+    onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+    className="text-gray-600 hover:text-amber-800 text-xs sm:text-sm transition-colors"
+  >
+    Home
+  </Link>
               </li>
               <li>
                 <Link 
