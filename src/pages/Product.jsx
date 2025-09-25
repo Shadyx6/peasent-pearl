@@ -13,6 +13,7 @@ import {
 } from "react-icons/fi";
 import { FaGem, FaWeightHanging } from "react-icons/fa";
 import axios from "axios";
+import ProductItem from "../components/ProductItem";
 
 const Product = () => {
   // --- hooks (stable order) ---
@@ -111,6 +112,25 @@ const Product = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedVariant, selectedAvailable]);
+
+  const relatedProducts = React.useMemo(() => {
+  if (!product || !products) return [];
+  const others = (products || []).filter((p) => String(p._id) !== String(product._id));
+  // try subcategory
+  const bySub = product.subcategory
+    ? others.filter((p) => p.subcategory && String(p.subcategory).toLowerCase() === String(product.subcategory).toLowerCase())
+    : [];
+  if (bySub.length >= 1) return bySub.slice(0, 6);
+
+  // try category
+  const byCat = product.category
+    ? others.filter((p) => p.category && String(p.category).toLowerCase() === String(product.category).toLowerCase())
+    : [];
+  if (byCat.length >= 1) return byCat.slice(0, 6);
+
+  // fallback: show newest / random
+  return others.slice(0, 6);
+}, [product, products]);
 
   if (!product) {
     return (
@@ -224,6 +244,7 @@ const normalizeImageUrl = (url) => {
   if (!prefix) return url.startsWith("/") ? url : url;
   return url.startsWith("/") ? `${prefix.replace(/\/$/, "")}${url}` : `${prefix}${url}`;
 };
+
 
 
 /**
@@ -633,9 +654,31 @@ const renderMainMedia = (media) => {
             </div>
           </div>
         </div>
+        
       </div>
+      {relatedProducts && relatedProducts.length > 0 && (
+  <div className="mt-12 border-t pt-8">
+    <h3 className="text-2xl font-semibold text-amber-900 mb-4">Related products</h3>
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 gap-6">
+      {relatedProducts.map((rp) => (
+        <ProductItem
+          key={rp._id}
+          id={rp._id}
+          image={rp.variants?.[0]?.images?.[0] || rp.image}
+          name={rp.name}
+          price={rp.price}
+          finalPrice={rp.finalPrice ?? rp.price}
+          stock={ (rp.variants && rp.variants.length > 0) ? (typeof rp.variants[0].stock === "number" ? rp.variants[0].stock : rp.stock) : rp.stock }
+          badgeType={rp.isNew ? "new" : rp.isTrending ? "trend" : undefined}
+        />
+      ))}
+    </div>
+  </div>
+)}
     </motion.div>
+    
   );
+  
 };
 
 export default Product;
