@@ -1,3 +1,4 @@
+// src/pages/PlaceOrder.jsx
 import React, { useContext, useState, useEffect } from "react";
 import { ShopContext } from "../context/ShopContext";
 import { motion } from "framer-motion";
@@ -6,6 +7,16 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import PhoneInput from "react-phone-input-2";
 
+const PAK_PROVINCES = [
+  "Punjab",
+  "Sindh",
+  "Khyber Pakhtunkhwa",
+  "Balochistan",
+  "Islamabad Capital Territory",
+  "Gilgit-Baltistan",
+  "Azad Jammu & Kashmir",
+];
+
 const PlaceOrder = () => {
   const { cartItems, products, currency, delivery_fee, clearCart } = useContext(ShopContext);
   const [cartData, setCartData] = useState([]);
@@ -13,9 +24,18 @@ const PlaceOrder = () => {
   const navigate = useNavigate();
   const [formErrors, setFormErrors] = useState({});
 
+  // Default payment method changed to online ("jazz")
   const [form, setForm] = useState({
-    name: "", phone: "", email: "", address: "", city: "", state: "", note: "",
-    paymentMethod: "cod", transactionRef: "", senderLast4: "",
+    name: "",
+    phone: "",
+    email: "",
+    address: "",
+    city: "",
+    state: "", // will be selected from dropdown
+    note: "",
+    paymentMethod: "jazz", // default = JazzCash / Easypaisa
+    transactionRef: "",
+    senderLast4: "",
   });
 
   const [file, setFile] = useState(null);
@@ -73,14 +93,31 @@ const PlaceOrder = () => {
   const subtotal = cartData.reduce((s, it) => s + (Number(it.total) || 0), 0);
   const shipping = subtotal >= 3000 ? 0 : Number(delivery_fee || 0);
   const total = subtotal + shipping;
+
+  // Advance: if COD -> half, else full
   const advanceAmount = form.paymentMethod === "cod" ? Math.round(total / 2) : total;
 
+  // --- Validation helpers ---
+  const isValidPakPhone = (p) => {
+    if (!p) return false;
+    return /^\+923\d{9}$/.test(p.toString().trim());
+  };
+
+  // Require a domain dot after @ (e.g. user@domain.com)
+  const isValidEmail = (e) => {
+    if (!e || typeof e !== "string") return false;
+    // Basic RFC-lite validation: non-space + @ + non-space + . + at least 2 letters
+    return /^\S+@\S+\.[A-Za-z]{2,}$/.test(e.trim());
+  };
+
+  // Update form and clear errors as appropriate
   const handleInput = (e) => {
     const { name, value, type } = e.target;
-    if (type === "radio") {
-      setForm((p) => ({ ...p, [name]: value }));
-    } else {
-      setForm((p) => ({ ...p, [name]: value }));
+    setForm((p) => ({ ...p, [name]: value }));
+
+    // live validation for email
+    if (name === "email") {
+      setFormErrors((prev) => ({ ...prev, email: isValidEmail(value) ? "" : "Please enter a valid email (example: name@example.com)" }));
     }
   };
 
@@ -122,11 +159,6 @@ const PlaceOrder = () => {
     }
   };
 
-  const isValidPakPhone = (p) => {
-    if (!p) return false;
-    return /^\+923\d{9}$/.test(p.toString().trim());
-  };
-
   const getMissingFields = () => {
     const missing = [];
     if (!file) missing.push("Payment screenshot (required)");
@@ -135,14 +167,28 @@ const PlaceOrder = () => {
     return missing;
   };
 
+  // --- Place order ---
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
+
+    // basic checks
     if (cartData.length === 0) {
       toast.error("Your cart is empty.");
       return;
     }
 
-    // For these payment types we require proof fields
+    if (!isValidEmail(form.email)) {
+      setFormErrors((prev) => ({ ...prev, email: "Please enter a valid email (example: name@example.com)" }));
+      toast.error("Please correct form errors before proceeding.");
+      return;
+    }
+
+    if (!form.state) {
+      toast.error("Please select a state/province.");
+      return;
+    }
+
+    // For these payment types we require proof fields (bank/jazz) and also COD (since we expect screenshot for advance)
     if (["cod", "bank", "jazz"].includes(form.paymentMethod)) {
       const missing = getMissingFields();
       if (missing.length > 0) {
@@ -188,31 +234,8 @@ const PlaceOrder = () => {
       if (!res?.data?.success) throw new Error(res?.data?.message || "Order creation failed");
 
       const orderId = res.data.orderId || res.data.order?._id || res.data.order?.id;
-      
-      // Upload proof if any
-      if (file) {
-        const fd = new FormData();
-        fd.append("proof", file);
-        fd.append("orderId", orderId);
-        if (form.transactionRef) fd.append("transactionRef", form.transactionRef);
-        if (form.senderLast4) fd.append("senderLast4", form.senderLast4);
-        await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/order/upload-proof`, fd, { 
-          headers: { "Content-Type": "multipart/form-data" } 
-        });
-      }
 
-      // Decrement stock
-      const decPromises = itemsPayload.map((it) =>
-        axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/product/decrement-stock`, {
-          productId: it.productId,
-          color: String(it.variant || "").trim(),
-          quantity: Number(it.quantity || 0),
-        }).catch((err) => {
-          console.warn("decrement-stock failed for", it.productId, it.variant, err?.message || err);
-        })
-      );
-      await Promise.allSettled(decPromises);
-
+      // --- UX improvement: navigate immediately so customer doesn't wait ---
       toast.success("Order placed successfully!");
       clearCart();
 
@@ -222,8 +245,40 @@ const PlaceOrder = () => {
         orderId: orderId || "",
       }).toString();
 
+      // Fire background tasks but don't block navigation:
+      (async () => {
+        try {
+          // Upload proof if any (non-blocking)
+          if (file) {
+            const fd = new FormData();
+            fd.append("proof", file);
+            fd.append("orderId", orderId);
+            if (form.transactionRef) fd.append("transactionRef", form.transactionRef);
+            if (form.senderLast4) fd.append("senderLast4", form.senderLast4);
+            await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/order/upload-proof`, fd, {
+              headers: { "Content-Type": "multipart/form-data" },
+            });
+          }
+
+          // Decrement stock (best-effort)
+          const decPromises = itemsPayload.map((it) =>
+            axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/product/decrement-stock`, {
+              productId: it.productId,
+              color: String(it.variant || "").trim(),
+              quantity: Number(it.quantity || 0),
+            }).catch((err) => {
+              console.warn("decrement-stock failed for", it.productId, it.variant, err?.message || err);
+            })
+          );
+          await Promise.allSettled(decPromises);
+        } catch (bgErr) {
+          console.error("Background tasks error:", bgErr);
+        }
+      })();
+
+      // navigate right away (this reduces perceived delay)
       navigate(`/thank-you?${q}`);
-      setTimeout(() => window.location.reload(), 300);
+      // small reload removed — avoid forced reload to keep UX smooth
     } catch (err) {
       console.error("Place order error:", err);
       toast.error(err?.response?.data?.message || err.message || "Server error while placing order");
@@ -233,7 +288,10 @@ const PlaceOrder = () => {
   };
 
   const proofRequired = ["cod", "bank", "jazz"].includes(form.paymentMethod);
-  const canSubmit = cartData.length > 0 && (!proofRequired || (file && form.transactionRef && form.senderLast4 && form.senderLast4.trim().length === 4));
+  const canSubmit =
+    cartData.length > 0 &&
+    (!proofRequired || (file && form.transactionRef && form.senderLast4 && form.senderLast4.trim().length === 4)) &&
+    isValidEmail(form.email);
 
   return (
     <div className="max-w-6xl mx-auto px-2 py-5">
@@ -241,36 +299,21 @@ const PlaceOrder = () => {
       {missingModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40" onClick={() => setMissingModalOpen(false)}></div>
-          <motion.div 
-            initial={{ scale: 0.98, opacity: 0 }} 
-            animate={{ scale: 1, opacity: 1 }} 
-            className="relative z-10 max-w-lg w-full bg-white rounded-lg shadow-xl p-6"
-          >
+          <motion.div initial={{ scale: 0.98, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative z-10 max-w-lg w-full bg-white rounded-lg shadow-xl p-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-3">Additional Information Required</h3>
             <div className="mb-4 text-gray-600">
               <p className="mb-3">We need the following information to process your order:</p>
-              <ul className="list-disc pl-5 space-y-1">
-                {missingList.map((m, i) => <li key={i}>{m}</li>)}
-              </ul>
+              <ul className="list-disc pl-5 space-y-1">{missingList.map((m, i) => <li key={i}>{m}</li>)}</ul>
               <p className="mt-3 text-sm text-gray-500">If you need assistance, please contact customer support.</p>
             </div>
             <div className="flex justify-end">
-              <button 
-                onClick={() => setMissingModalOpen(false)} 
-                className="px-4 py-2 rounded bg-amber-600 text-white hover:bg-amber-700 transition-colors"
-              >
-                Okay
-              </button>
+              <button onClick={() => setMissingModalOpen(false)} className="px-4 py-2 rounded bg-amber-600 text-white hover:bg-amber-700 transition-colors">Okay</button>
             </div>
           </motion.div>
         </div>
       )}
 
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }} 
-        animate={{ opacity: 1, y: 0 }} 
-        className="bg-white p-2 rounded-lg shadow-lg"
-      >
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-2 rounded-lg shadow-lg">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Complete Your Order</h2>
 
         <div className="flex flex-col lg:flex-row gap-8">
@@ -283,14 +326,9 @@ const PlaceOrder = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                    <input 
-                      name="name" 
-                      value={form.name} 
-                      onChange={handleInput} 
-                      required 
-                      className="w-full p-3 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500" 
-                    />
+                    <input name="name" value={form.name} onChange={handleInput} required className="w-full p-3 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500" />
                   </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
                     <PhoneInput
@@ -303,36 +341,28 @@ const PlaceOrder = () => {
                         const formatted = value.startsWith("+") ? value : `+${value}`;
                         setForm((prev) => ({ ...prev, phone: formatted }));
                         if (!isValidPakPhone(formatted)) {
-                          setFormErrors((prev) => ({
-                            ...prev,
-                            phone: "Please enter a valid Pakistani mobile number.",
-                          }));
+                          setFormErrors((prev) => ({ ...prev, phone: "Please enter a valid Pakistani mobile number." }));
                         } else {
                           setFormErrors((prev) => ({ ...prev, phone: "" }));
                         }
                       }}
-                      inputClass={`w-full p-3 border rounded-md focus:ring-amber-500 focus:border-amber-500 ${
-                        formErrors.phone ? "border-red-400" : "border-gray-300"
-                      }`}
-                      inputProps={{
-                        name: "phone",
-                        required: true,
-                      }}
+                      inputClass={`w-full p-3 border rounded-md focus:ring-amber-500 focus:border-amber-500 ${formErrors.phone ? "border-red-400" : "border-gray-300"}`}
+                      inputProps={{ name: "phone", required: true }}
                     />
-                    {formErrors.phone && (
-                      <p className="text-xs text-red-600 mt-1">{formErrors.phone}</p>
-                    )}
+                    {formErrors.phone && <p className="text-xs text-red-600 mt-1">{formErrors.phone}</p>}
                   </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                    <input 
-                      name="email" 
-                      value={form.email} 
-                      onChange={handleInput} 
-                      required 
+                    <input
+                      name="email"
+                      value={form.email}
+                      onChange={handleInput}
+                      required
                       type="email"
-                      className="w-full p-3 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500" 
+                      className={`w-full p-3 border ${formErrors.email ? "border-red-400" : "border-gray-300"} rounded-md focus:ring-amber-500 focus:border-amber-500`}
                     />
+                    {formErrors.email && <p className="text-xs text-red-600 mt-1">{formErrors.email}</p>}
                   </div>
                 </div>
               </div>
@@ -343,46 +373,33 @@ const PlaceOrder = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Full Address</label>
-                    <textarea 
-                      name="address" 
-                      value={form.address} 
-                      onChange={handleInput} 
-                      required 
-                      rows={3}
-                      className="w-full p-3 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500" 
-                    />
+                    <textarea name="address" value={form.address} onChange={handleInput} required rows={3} className="w-full p-3 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500" />
                   </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                      <input 
-                        name="city" 
-                        value={form.city} 
-                        onChange={handleInput} 
-                        required 
-                        className="w-full p-3 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500" 
-                      />
+                      <input name="city" value={form.city} onChange={handleInput} required className="w-full p-3 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500" />
                     </div>
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">State/Province</label>
-                      <input 
-                        name="state" 
-                        value={form.state} 
-                        onChange={handleInput} 
-                        required 
-                        className="w-full p-3 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500" 
-                      />
+                      <select
+                        name="state"
+                        value={form.state}
+                        onChange={handleInput}
+                        required
+                        className="w-full p-3 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500"
+                      >
+                        <option value="">Select state / province</option>
+                        {PAK_PROVINCES.map((s) => <option key={s} value={s}>{s}</option>)}
+                      </select>
                     </div>
                   </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Order Notes (Optional)</label>
-                    <textarea 
-                      name="note" 
-                      value={form.note} 
-                      onChange={handleInput} 
-                      rows={2}
-                      className="w-full p-3 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500" 
-                    />
+                    <textarea name="note" value={form.note} onChange={handleInput} rows={2} className="w-full p-3 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500" />
                   </div>
                 </div>
               </div>
@@ -390,152 +407,86 @@ const PlaceOrder = () => {
               {/* Payment Method */}
               <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
                 <h3 className="text-lg font-semibold mb-4 text-gray-700">Payment Method</h3>
-                
+
                 <div className="space-y-4">
                   <div className="border rounded-md p-4 hover:border-amber-500 transition-colors">
                     <label className="flex items-start">
-                      <input 
-                        type="radio" 
-                        name="paymentMethod" 
-                        value="cod" 
-                        checked={form.paymentMethod === "cod"} 
-                        onChange={handleInput} 
-                        className="mt-1 mr-3" 
-                      />
+                      <input type="radio" name="paymentMethod" value="cod" checked={form.paymentMethod === "cod"} onChange={handleInput} className="mt-1 mr-3" />
                       <div className="flex-1">
                         <div className="font-medium">Cash on Delivery</div>
-                        <div className="text-sm text-gray-600 mt-1">
-                          Pay <strong>50% advance</strong> now; remaining amount will be collected on delivery.
-                        </div>
+                        <div className="text-sm text-gray-600 mt-1">Pay <strong>50% advance</strong> now; remaining amount will be collected on delivery.</div>
                       </div>
                     </label>
                   </div>
 
                   <div className="border rounded-md p-4 hover:border-amber-500 transition-colors">
                     <label className="flex items-start">
-                      <input 
-                        type="radio" 
-                        name="paymentMethod" 
-                        value="bank" 
-                        checked={form.paymentMethod === "bank"} 
-                        onChange={handleInput} 
-                        className="mt-1 mr-3" 
-                      />
+                      <input type="radio" name="paymentMethod" value="bank" checked={form.paymentMethod === "bank"} onChange={handleInput} className="mt-1 mr-3" />
                       <div className="flex-1">
                         <div className="font-medium">Bank Transfer</div>
-                        <div className="text-sm text-gray-600 mt-1">
-                          Transfer full amount and upload proof for verification.
-                        </div>
+                        <div className="text-sm text-gray-600 mt-1">Transfer full amount and upload proof for verification.</div>
                       </div>
                     </label>
                   </div>
 
                   <div className="border rounded-md p-4 hover:border-amber-500 transition-colors">
                     <label className="flex items-start">
-                      <input 
-                        type="radio" 
-                        name="paymentMethod" 
-                        value="jazz" 
-                        checked={form.paymentMethod === "jazz"} 
-                        onChange={handleInput} 
-                        className="mt-1 mr-3" 
-                      />
+                      <input type="radio" name="paymentMethod" value="jazz" checked={form.paymentMethod === "jazz"} onChange={handleInput} className="mt-1 mr-3" />
                       <div className="flex-1">
                         <div className="font-medium">JazzCash / Easypaisa</div>
-                        <div className="text-sm text-gray-600 mt-1">
-                          Send to account number and upload proof.
-                        </div>
+                        <div className="text-sm text-gray-600 mt-1">Send to account number and upload proof.</div>
                       </div>
                     </label>
                   </div>
                 </div>
 
-                {/* Payment details based on selection */}
+                {/* Payment instructions */}
                 {form.paymentMethod && (
                   <div className="mt-6 p-4 bg-white rounded-md border border-gray-200">
                     <h4 className="font-medium text-gray-700 mb-3">Payment Instructions</h4>
-                    
-                    {form.paymentMethod === "cod" && (
+
+                    {form.paymentMethod === "cod" ? (
                       <>
-                        <p className="text-sm text-gray-600 mb-3">
-                          Please transfer <strong>{currency} {advanceAmount}</strong> now to confirm your order.
-                        </p>
+                        <p className="text-sm text-gray-600 mb-3">Please transfer <strong>{currency} {advanceAmount}</strong> now to confirm your order.</p>
                         <div className="bg-amber-50 p-3 rounded-md mb-4">
                           <div className="text-sm font-medium">{paymentDetails.bankName}</div>
                           <div className="text-sm">{paymentDetails.accountName}</div>
                           <div className="flex items-center mt-1">
                             <div className="text-sm flex-1">Account: {paymentDetails.accountNumber}</div>
-                            <button 
-                              type="button" 
-                              onClick={() => copyToClipboard(paymentDetails.accountNumber)} 
-                              className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition-colors"
-                            >
-                              Copy
-                            </button>
+                            <button type="button" onClick={() => copyToClipboard(paymentDetails.accountNumber)} className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition-colors">Copy</button>
                           </div>
                           <div className="text-sm mt-1">IBAN: {paymentDetails.iban}</div>
                           <div className="flex items-center mt-2">
-                            <div className="text-sm flex-1">JazzCash ({paymentDetails.jazzName}): {paymentDetails.jazzNumber} </div>
-                            <button 
-                              type="button" 
-                              onClick={() => copyToClipboard(paymentDetails.jazzNumber)} 
-                              className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition-colors"
-                            >
-                              Copy
-                            </button>
+                            <div className="text-sm flex-1">JazzCash ({paymentDetails.jazzName}): {paymentDetails.jazzNumber}</div>
+                            <button type="button" onClick={() => copyToClipboard(paymentDetails.jazzNumber)} className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition-colors">Copy</button>
                           </div>
                         </div>
                       </>
-                    )}
-
-                    {form.paymentMethod === "bank" && (
+                    ) : form.paymentMethod === "bank" ? (
                       <div className="bg-amber-50 p-3 rounded-md mb-4">
                         <div className="text-sm font-medium">{paymentDetails.bankName}</div>
                         <div className="text-sm">{paymentDetails.accountName}</div>
                         <div className="flex items-center mt-1">
                           <div className="text-sm flex-1">Account: {paymentDetails.accountNumber}</div>
-                          <button 
-                            type="button" 
-                            onClick={() => copyToClipboard(paymentDetails.accountNumber)} 
-                            className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition-colors"
-                          >
-                            Copy
-                          </button>
+                          <button type="button" onClick={() => copyToClipboard(paymentDetails.accountNumber)} className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition-colors">Copy</button>
                         </div>
                         <div className="text-sm mt-1">IBAN: {paymentDetails.iban}</div>
                       </div>
-                    )}
-
-                    {form.paymentMethod === "jazz" && (
+                    ) : (
                       <div className="bg-amber-50 p-3 rounded-md mb-4">
                         <div className="flex items-center">
-                          <div className="text-sm flex-1">
-                            JazzCash ({paymentDetails.jazzName}): {paymentDetails.jazzNumber}
-                          </div>
-                          <button 
-                            type="button" 
-                            onClick={() => copyToClipboard(paymentDetails.jazzNumber)} 
-                            className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition-colors"
-                          >
-                            Copy
-                          </button>
+                          <div className="text-sm flex-1">JazzCash ({paymentDetails.jazzName}): {paymentDetails.jazzNumber}</div>
+                          <button type="button" onClick={() => copyToClipboard(paymentDetails.jazzNumber)} className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition-colors">Copy</button>
                         </div>
 
                         <div className="flex items-center mt-2">
-                          <div className="text-sm flex-1">
-                            Easypaisa ({paymentDetails.easypaisaName}): {paymentDetails.easypaisaNumber}
-                          </div>
-                          <button 
-                            type="button" 
-                            onClick={() => copyToClipboard(paymentDetails.easypaisaNumber)} 
-                            className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition-colors"
-                          >
-                            Copy
-                          </button>
+                          <div className="text-sm flex-1">Easypaisa ({paymentDetails.easypaisaName}): {paymentDetails.easypaisaNumber}</div>
+                          <button type="button" onClick={() => copyToClipboard(paymentDetails.easypaisaNumber)} className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition-colors">Copy</button>
                         </div>
                       </div>
                     )}
 
+                    {/* Upload proof */}
                     <div className="mb-4">
                       <label className="block text-sm font-medium text-gray-700 mb-2">Upload Payment Proof</label>
                       <div className="flex items-center justify-center w-full">
@@ -550,7 +501,7 @@ const PlaceOrder = () => {
                           <input type="file" className="hidden" accept=".png,.jpg,.jpeg,.pdf" onChange={handleFile} />
                         </label>
                       </div>
-                      
+
                       {file && (
                         <div className="mt-3 flex items-center justify-between p-3 bg-gray-50 rounded-md">
                           <div className="flex items-center">
@@ -566,11 +517,7 @@ const PlaceOrder = () => {
                               <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                             </div>
                           </div>
-                          <button 
-                            type="button" 
-                            onClick={removeFile} 
-                            className="text-red-600 hover:text-red-800 transition-colors"
-                          >
+                          <button type="button" onClick={removeFile} className="text-red-600 hover:text-red-800 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                               <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
                             </svg>
@@ -582,24 +529,11 @@ const PlaceOrder = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Transaction Reference</label>
-                        <input 
-                          name="transactionRef" 
-                          value={form.transactionRef} 
-                          onChange={handleInput} 
-                          placeholder="Enter reference code" 
-                          className="w-full p-3 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500" 
-                        />
+                        <input name="transactionRef" value={form.transactionRef} onChange={handleInput} placeholder="Enter reference code" className="w-full p-3 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500" />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Last 4 Digits</label>
-                        <input 
-                          name="senderLast4" 
-                          value={form.senderLast4} 
-                          onChange={handleInput} 
-                          placeholder="Last 4 digits of sender" 
-                          maxLength={4}
-                          className="w-full p-3 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500" 
-                        />
+                        <input name="senderLast4" value={form.senderLast4} onChange={handleInput} placeholder="Last 4 digits of sender" maxLength={4} className="w-full p-3 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500" />
                       </div>
                     </div>
                   </div>
@@ -607,17 +541,7 @@ const PlaceOrder = () => {
               </div>
 
               {/* Submit Button */}
-              <motion.button
-                type="submit"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                disabled={!canSubmit || isSubmitting}
-                className={`w-full py-3 rounded-md font-medium text-lg ${
-                  (!canSubmit || isSubmitting) 
-                  ? "bg-gray-300 cursor-not-allowed" 
-                  : "bg-amber-600 hover:bg-amber-700 text-white"
-                } transition-colors`}
-              >
+              <motion.button type="submit" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} disabled={!canSubmit || isSubmitting} className={`w-full py-3 rounded-md font-medium text-lg ${(!canSubmit || isSubmitting) ? "bg-gray-300 cursor-not-allowed" : "bg-amber-600 hover:bg-amber-700 text-white"} transition-colors`}>
                 {isSubmitting ? "Processing..." : `Place Order & Pay ${currency} ${advanceAmount}`}
               </motion.button>
             </form>
@@ -627,23 +551,17 @@ const PlaceOrder = () => {
           <div className="w-full lg:w-96">
             <div className="bg-white rounded-lg border border-gray-200 p-5 sticky top-4">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Order Summary</h3>
-              
+
               {/* Cart Items */}
               <div className="mb-4 max-h-64 overflow-y-auto">
                 {cartData.map((item) => (
                   <div key={item._id} className="flex items-center py-3 border-b border-gray-100 last:border-b-0">
                     <div className="flex-shrink-0 w-16 h-16 bg-gray-200 rounded-md overflow-hidden">
-                      <img 
-                        src={item.image} 
-                        alt={item.name} 
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                     </div>
                     <div className="ml-4 flex-1">
                       <h4 className="text-sm font-medium text-gray-800">{item.name}</h4>
-                      {item.variant && (
-                        <p className="text-xs text-gray-500">Variant: {item.variant}</p>
-                      )}
+                      {item.variant && <p className="text-xs text-gray-500">Variant: {item.variant}</p>}
                       <div className="flex justify-between items-center mt-1">
                         <span className="text-sm text-gray-600">Qty: {item.quantity}</span>
                         <span className="text-sm font-medium text-gray-800">{currency} {item.total.toFixed(2)}</span>
@@ -652,7 +570,7 @@ const PlaceOrder = () => {
                   </div>
                 ))}
               </div>
-              
+
               {/* Order Totals */}
               <div className="space-y-2 pt-4 border-t border-gray-200">
                 <div className="flex justify-between">
@@ -668,17 +586,13 @@ const PlaceOrder = () => {
                   <span className="text-lg font-bold text-amber-700">{currency} {total.toFixed(2)}</span>
                 </div>
               </div>
-              
+
               {/* Payment Info */}
               <div className="mt-4 p-3 bg-amber-50 rounded-md">
                 {form.paymentMethod === "cod" ? (
-                  <p className="text-sm text-amber-800 text-center">
-                    For COD you need to pay <strong>50% advance</strong> now to confirm your order.
-                  </p>
+                  <p className="text-sm text-amber-800 text-center">For COD you need to pay <strong>50% advance</strong> now to confirm your order.</p>
                 ) : (
-                  <p className="text-sm text-amber-800 text-center">
-                    Please transfer: {currency} {advanceAmount} and upload proof for verification
-                  </p>
+                  <p className="text-sm text-amber-800 text-center">Please transfer: {currency} {advanceAmount} and upload proof for verification</p>
                 )}
               </div>
             </div>
