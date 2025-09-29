@@ -569,10 +569,30 @@ const renderMainMedia = (media) => {
             </div>
 
             {/* Meta */}
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              {product.material && <div className="flex items-center"><FaGem className="text-amber-600 mr-2" /><span>{product.material.type} {product.material.purity}</span></div>}
-              {product.weight && <div className="flex items-center"><FaWeightHanging className="text-amber-600 mr-2" /><span>{product.weight}g</span></div>}
-            </div>
+            {/* Meta */}
+<div className="grid grid-cols-2 gap-3 text-sm">
+  {product.material && (
+    <div className="flex items-center">
+      <FaGem className="text-amber-600 mr-2" />
+      <span>{product.material.type} {product.material.purity}</span>
+    </div>
+  )}
+  {product.weight && (
+    <div className="flex items-center">
+      <FaWeightHanging className="text-amber-600 mr-2" />
+      <span>{product.weight}g</span>
+    </div>
+  )}
+
+  {/* 💡 Add this: */}
+  {product.size && (
+    <div className="flex items-center">
+      <span className="text-amber-600 mr-2">Size:</span>
+      <span>{product.size}</span>
+    </div>
+  )}
+</div>
+
 
             {/* Variants */}
             {product.variants?.length > 0 && (
@@ -692,15 +712,23 @@ const renderMainMedia = (media) => {
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 gap-6">
       {relatedProducts.map((rp) => (
         <ProductItem
-          key={rp._id}
-          id={rp._id}
-          image={rp.variants?.[0]?.images?.[0] || rp.image}
-          name={rp.name}
-          price={rp.price}
-          finalPrice={rp.finalPrice ?? rp.price}
-          stock={ (rp.variants && rp.variants.length > 0) ? (typeof rp.variants[0].stock === "number" ? rp.variants[0].stock : rp.stock) : rp.stock }
-          badgeType={rp.isNew ? "new" : rp.isTrending ? "trend" : undefined}
-        />
+  key={rp._id}
+  id={rp._id}
+  image={rp.variants?.[0]?.images?.[0] || rp.image}
+  video={rp.variants?.[0]?.videos?.[0] || rp.videos?.[0]}
+  name={rp.name}
+  price={rp.price}
+  finalPrice={rp.finalPrice ?? rp.price}
+  stock={
+    rp.variants?.length > 0
+      ? (typeof rp.variants[0].stock === "number"
+          ? rp.variants[0].stock
+          : rp.stock)
+      : rp.stock
+  }
+  badgeType={rp.isNew ? "new" : rp.isTrending ? "trend" : undefined}
+/>
+
       ))}
     </div>
   </div>
