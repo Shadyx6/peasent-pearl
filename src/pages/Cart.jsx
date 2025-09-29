@@ -177,15 +177,17 @@ const Cart = () => {
             <h3 className="text-xl font-serif font-light text-amber-900 mb-6 pb-2 border-b border-amber-200">Order Summary</h3>
 
             <div className="space-y-4 mb-6">
-              <div className="flex justify-between"><span className="text-amber-700">Subtotal</span><span className="font-medium">{currency} {subtotal.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-gray-900">Subtotal</span><span className="font-medium text-amber-900"> {subtotal.toFixed(2)} {currency}</span></div>
               <div className="flex justify-between">
-                <span className="text-amber-700">Delivery</span>
-                <span className="font-medium">
-                  {currency} {shipping}
-                  {shipping === 0 && <span className="ml-2 text-xs text-green-600">(Free delivery for orders over 3000)</span>}
+                <span className="text-gray-700">Delivery </span>
+               
+                <span className="font-medium ml-10 text-amber-900">
+                 {shipping}   {currency}
+                
+                  {shipping === 0 &&  <span className="ml-2 text-xs text-green-600">(Free delivery for orders over 3000)</span>}
                 </span>
               </div>
-              <div className="flex justify-between pt-4 border-t border-amber-200"><span className="text-lg font-medium text-amber-900">Total</span><span className="text-lg font-medium text-amber-900">{currency} {grandTotal.toFixed(2)}</span></div>
+              <div className="flex justify-between pt-4 border-t border-amber-200"><span className="text-lg font-medium text-amber-900">Total</span><span className="text-lg font-medium text-amber-900"> {grandTotal.toFixed(2)} {currency}</span></div>
             </div>
 
             <motion.button onClick={() => navigate("/place-order")} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} disabled={isProcessing}

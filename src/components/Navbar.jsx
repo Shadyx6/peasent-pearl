@@ -68,7 +68,7 @@ const Navbar = () => {
               <div className="text-sm text-amber-800 font-medium flex items-center">
                 <span className="hidden sm:inline">Free delivery on orders above </span>
                 <span className="sm:hidden">Free delivery above </span>
-                <span className="font-bold ml-1">₹{FREE_DELIVERY_THRESHOLD}</span>
+                <span className="font-bold ml-1">{FREE_DELIVERY_THRESHOLD} PKR</span>
               </div>
             ) : (
               <div className="flex items-center justify-center w-full">
@@ -93,7 +93,7 @@ const Navbar = () => {
                 {/* Delivery threshold indicator */}
                 <div className="hidden md:flex items-center ml-4 pl-4 border-l border-amber-200">
                   <span className="text-xs text-amber-700">
-                    Free delivery on orders above <span className="font-semibold">₹{FREE_DELIVERY_THRESHOLD}</span>
+                    Free delivery on orders above <span className="font-semibold">{FREE_DELIVERY_THRESHOLD} PKR</span>
                   </span>
                 </div>
               </div>
@@ -132,7 +132,7 @@ const Navbar = () => {
             {/* Logo */}
             <div className="flex-shrink-0 flex items-center">
               <NavLink to="/" className="mx-auto md:mx-0">
-                <img src="./image/logo1.png" alt="logo" className="h-15 w-auto md:h-18 lg:h-20" />
+                <img src="/image/logo1.png" alt="logo" className="h-15 w-auto md:h-18 lg:h-20" />
               </NavLink>
             </div>
 

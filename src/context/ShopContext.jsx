@@ -8,7 +8,7 @@ export const ShopContext = createContext();
 const LOCAL_KEY = "guestCart_v1";
 
 const ShopContextProvider = (props) => {
-  const currency = "Rs";
+  const currency = "PKR";
   const delivery_fee = 250;
   const navigate = useNavigate();
 

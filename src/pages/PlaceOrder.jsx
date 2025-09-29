@@ -57,34 +57,38 @@ const PlaceOrder = () => {
   // Map cart items to cart data
   useEffect(() => {
     const items = (cartItems || [])
-      .map((ci) => {
-        if (!ci || !ci.productId) return null;
-        const product = products?.find((p) => String(p._id) === String(ci.productId));
-        if (!product) return null;
+     .map((ci) => {
+  if (!ci || !ci.productId) return null;
+  const product = products?.find((p) => String(p._id) === String(ci.productId));
+  if (!product) return null;
 
-        let variant = null;
-        if (ci.variantId) {
-          variant = product.variants?.find((v) => String(v._id) === String(ci.variantId));
-        }
-        if (!variant && ci.variantColor) {
-          variant = product.variants?.find((v) => (v.color || "").toLowerCase() === String(ci.variantColor).toLowerCase());
-        }
+  let variant = null;
+  if (ci.variantId) {
+    variant = product.variants?.find((v) => String(v._id) === String(ci.variantId));
+  }
+  if (!variant && ci.variantColor) {
+    variant = product.variants?.find(
+      (v) => (v.color || "").toLowerCase() === String(ci.variantColor).toLowerCase()
+    );
+  }
 
-        const image = variant?.images?.[0] || product.image || "";
-        const unitPrice = product.finalPrice ?? product.price ?? 0;
-        const quantity = Math.max(0, Number(ci.quantity || 0));
+  const variantColor = String(variant?.color ?? ci.variantColor ?? "").trim(); // 👈 define it
+  const image = variant?.images?.[0] || product.image || "";
+  const unitPrice = product.finalPrice ?? product.price ?? 0;
+  const quantity = Math.max(0, Number(ci.quantity || 0));
 
-        return {
-          _id: `${ci.productId}_${ci.variantId || ci.variantColor || "default"}`,
-          productId: ci.productId,
-          name: product.name,
-          image,
-          variant: variant ? (variant.color || variant._id) : (ci.variantColor || ci.variantId || ""),
-          unitPrice,
-          quantity,
-          total: unitPrice * quantity,
-        };
-      })
+  return {
+    _id: `${ci.productId}_${variantColor || "default"}`, // 👈 use it
+    productId: ci.productId,
+    name: product.name,
+    image,
+    variantColor, // 👈 keep color only
+    unitPrice,
+    quantity,
+    total: unitPrice * quantity,
+  };
+})
+
       .filter(Boolean);
 
     setCartData(items);
@@ -205,7 +209,8 @@ const PlaceOrder = () => {
         key: it._id,
         name: it.name,
         image: it.image,
-        variant: it.variant,
+        // variant: it.variant,
+         variantColor: it.variantColor || "",   // 👈 send col
         quantity: Number(it.quantity),
         unitPrice: Number(it.unitPrice),
         total: Number(it.total),
@@ -264,7 +269,7 @@ const PlaceOrder = () => {
           const decPromises = itemsPayload.map((it) =>
             axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/product/decrement-stock`, {
               productId: it.productId,
-              color: String(it.variant || "").trim(),
+                color: String(it.variantColor || "").trim(),   // 👈 not it.variant
               quantity: Number(it.quantity || 0),
             }).catch((err) => {
               console.warn("decrement-stock failed for", it.productId, it.variant, err?.message || err);
@@ -561,10 +566,13 @@ const PlaceOrder = () => {
                     </div>
                     <div className="ml-4 flex-1">
                       <h4 className="text-sm font-medium text-gray-800">{item.name}</h4>
-                      {item.variant && <p className="text-xs text-gray-500">Variant: {item.variant}</p>}
+                      {item.variantColor && (
+  <p className="text-xs text-gray-500">Color: {item.variantColor}</p>
+)}
+
                       <div className="flex justify-between items-center mt-1">
                         <span className="text-sm text-gray-600">Qty: {item.quantity}</span>
-                        <span className="text-sm font-medium text-gray-800">{currency} {item.total.toFixed(2)}</span>
+                        <span className="text-sm font-medium text-gray-800"> {item.total.toFixed(2)} {currency}</span>
                       </div>
                     </div>
                   </div>
@@ -575,11 +583,11 @@ const PlaceOrder = () => {
               <div className="space-y-2 pt-4 border-t border-gray-200">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="font-medium">{currency} {subtotal.toFixed(2)}</span>
+                  <span className="font-medium"> {subtotal.toFixed(2)} {currency}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Shipping</span>
-                  <span className="font-medium">{currency} {shipping.toFixed(2)}</span>
+                  <span className="font-medium"> {shipping.toFixed(2)} {currency}</span>
                 </div>
                 <div className="flex justify-between pt-2 border-t border-gray-200">
                   <span className="text-lg font-semibold text-gray-800">Total</span>
@@ -592,7 +600,7 @@ const PlaceOrder = () => {
                 {form.paymentMethod === "cod" ? (
                   <p className="text-sm text-amber-800 text-center">For COD you need to pay <strong>50% advance</strong> now to confirm your order.</p>
                 ) : (
-                  <p className="text-sm text-amber-800 text-center">Please transfer: {currency} {advanceAmount} and upload proof for verification</p>
+                  <p className="text-sm text-amber-800 text-center">Please transfer:  {advanceAmount} {currency} and upload proof for verification</p>
                 )}
               </div>
             </div>

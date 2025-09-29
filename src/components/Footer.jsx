@@ -10,7 +10,7 @@ const Footer = () => {
           {/* Brand Column */}
           <div className="flex flex-col items-center sm:items-start">
             <img 
-              src="./image/logo1.png" 
+              src="/image/logo1.png" 
               alt="Pleasant Pearl" 
               className="h-12 w-auto mb-4"
             />
