@@ -643,7 +643,7 @@ const renderMainMedia = (media) => {
                 </motion.button>
               </div>
 
-              <div className="text-sm text-gray-600">Available: <span className="font-semibold">{selectedAvailable}</span></div>
+              
             </div>
 
             {/* Description */}
