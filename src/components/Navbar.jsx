@@ -33,30 +33,29 @@ const Navbar = () => {
   }, [cartItems, products]);
 
   // offer messages
-  const offerMessages = useMemo(() => {
-    if (!offers || offers.length === 0) return [];
-    return offers.map((o) => {
-      const catName =
-        Array.isArray(o.categories) && o.categories.length > 0
-          ? o.categories[0].name || o.categories[0]
-          : null;
-      if (catName) {
-        return `${o.discountPercentage}% OFF on ${catName}`;
-      }
-      return `${o.discountPercentage}% OFF storewide`;
-    });
-  }, [offers]);
+  // --- replace your offerMessages + rotation with this ---
+const maxPercent = useMemo(() => {
+  if (!Array.isArray(offers) || offers.length === 0) return 0;
 
-  // Rotate offers every 5 seconds if multiple offers exist
-  React.useEffect(() => {
-    if (offerMessages.length <= 1) return;
-    
-    const interval = setInterval(() => {
-      setCurrentOfferIndex((prev) => (prev + 1) % offerMessages.length);
-    }, 5000);
-    
-    return () => clearInterval(interval);
-  }, [offerMessages.length]);
+  const pctOf = (o) => {
+    // support both flat % and rule-based %
+    if (Array.isArray(o.discountRules) && o.discountRules.length > 0) {
+      const bestRule = o.discountRules.reduce(
+        (m, r) => Math.max(m, Number(r?.discountPercentage) || 0),
+        0
+      );
+      return bestRule;
+    }
+    return Number(o.discountPercentage) || 0;
+  };
+
+  return offers.reduce((m, o) => Math.max(m, pctOf(o)), 0);
+}, [offers]);
+
+const bannerText = maxPercent > 0
+  ? `Up to ${maxPercent}% OFF 🔥`
+  : null; // fall back to free-delivery msg if null
+
 
   return (
     <>
@@ -64,54 +63,32 @@ const Navbar = () => {
       <div className="w-full bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center h-10 overflow-hidden relative">
-            {offerMessages.length === 0 ? (
-              <div className="text-sm text-amber-800 font-medium flex items-center">
-                <span className="hidden sm:inline">Free delivery on orders above </span>
-                <span className="sm:hidden">Free delivery above </span>
-                <span className="font-bold ml-1">{FREE_DELIVERY_THRESHOLD} PKR</span>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center w-full">
-                <div className="flex items-center">
-                  <span className="text-amber-700 bg-amber-100 px-2 py-1 rounded text-xs font-semibold mr-2">
-                    SALE
-                  </span>
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={currentOfferIndex}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.3 }}
-                      className="text-sm font-medium text-amber-900"
-                    >
-                      {offerMessages[currentOfferIndex]}
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-                
-                {/* Delivery threshold indicator */}
-                <div className="hidden md:flex items-center ml-4 pl-4 border-l border-amber-200">
-                  <span className="text-xs text-amber-700">
-                    Free delivery on orders above <span className="font-semibold">{FREE_DELIVERY_THRESHOLD} PKR</span>
-                  </span>
-                </div>
-              </div>
-            )}
-            
-            {/* Progress bar for offer rotation */}
-            {offerMessages.length > 1 && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-100">
-                <motion.div
-                  key={currentOfferIndex}
-                  initial={{ width: "0%" }}
-                  animate={{ width: "100%" }}
-                  transition={{ duration: 5, ease: "linear" }}
-                  className="h-full bg-amber-400"
-                />
-              </div>
-            )}
-          </div>
+  {bannerText ? (
+    <div className="flex items-center justify-center w-full">
+      <span className="text-amber-700 bg-amber-100 px-2 py-1 rounded text-xs font-semibold mr-2">
+        SALE
+      </span>
+      <div className="text-sm font-medium text-amber-900">
+        {bannerText}
+      </div>
+
+      {/* Delivery threshold indicator */}
+      <div className="hidden md:flex items-center ml-4 pl-4 border-l border-amber-200">
+        <span className="text-xs text-amber-700">
+          Free delivery on orders above{" "}
+          <span className="font-semibold">{FREE_DELIVERY_THRESHOLD} PKR</span>
+        </span>
+      </div>
+    </div>
+  ) : (
+    <div className="text-sm text-amber-800 font-medium flex items-center">
+      <span className="hidden sm:inline">Free delivery on orders above </span>
+      <span className="sm:hidden">Free delivery above </span>
+      <span className="font-bold ml-1">{FREE_DELIVERY_THRESHOLD} PKR</span>
+    </div>
+  )}
+</div>
+
         </div>
       </div>
 
