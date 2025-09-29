@@ -86,8 +86,9 @@ const BestSeller = () => {
                 name={item.name}
                 price={item.price}
                 finalPrice={item.finalPrice}
+                 isBestseller
                 stock={(item.variants?.some((v) => v.stock > 0) || item.stock > 0) ? 1 : 0}
-                badgeType="trend"
+                
               />
             </motion.div>
           ))}

@@ -15,6 +15,7 @@ import { FiGrid, FiList } from "react-icons/fi";
 import { BiExpand } from "react-icons/bi";
 import { useLocation } from "react-router-dom";
 
+
 const Collection = () => {
   const { products = [], categories = [] } = useContext(ShopContext);
 
@@ -24,6 +25,8 @@ const Collection = () => {
   const [sortOption, setSortOption] = useState("relevant");
   const [priceRange, setPriceRange] = useState([0, 1000000]); // keep large default
   const [activeFilters, setActiveFilters] = useState(0);
+  const [specialFilter, setSpecialFilter] = useState(null); // e.g. "bestseller"
+
   const location = useLocation();
   const pickFirstImage = (p) =>
   (p.variants?.flatMap(v => v.images || []).find(Boolean)) || p.image || null;
@@ -56,40 +59,42 @@ const pickFirstVideo = (p) =>
   // canonicalizer: always use this form for storage & comparison
   const normalizeAndSingularize = useCallback((v) => singularize(normalize(v)), [normalize, singularize]);
 
-  useEffect(() => {
-    try {
-      const params = new URLSearchParams(location.search);
-      const catFromQuery = params.get("category");      // ?category=Bracelet
-      const subFromQuery = params.get("subcategory");   // optional
+useEffect(() => {
+  try {
+    const params = new URLSearchParams(location.search);
+    const catFromQuery = params.get("category");
+    const subFromQuery = params.get("subcategory");
+    const filterFromQuery = params.get("filter"); // NEW
 
-      if (catFromQuery) {
-        const main = normalizeAndSingularize(catFromQuery);
-        const desired = subFromQuery ? [main, normalizeAndSingularize(subFromQuery)] : [main];
+    // set special filter (null | 'bestseller' | others later)
+    setSpecialFilter(filterFromQuery || null);
 
-        // only update state if actually different
-        const same =
-          selectedCategories.length === desired.length &&
-          selectedCategories.every((v, i) => v === desired[i]);
+    if (catFromQuery) {
+      const main = normalizeAndSingularize(catFromQuery);
+      const desired = subFromQuery ? [main, normalizeAndSingularize(subFromQuery)] : [main];
 
-        if (!same) {
-          setSelectedCategories(desired);
+      const same =
+        selectedCategories.length === desired.length &&
+        selectedCategories.every((v, i) => v === desired[i]);
 
-          if (location.hash === "#collection-grid") {
-            setTimeout(() => {
-              document.getElementById("collection-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
-            }, 80);
-          }
-        }
-      } else {
-        if (selectedCategories.length > 0) {
-          setSelectedCategories([]);
+      if (!same) {
+        setSelectedCategories(desired);
+
+        if (location.hash === "#collection-grid") {
+          setTimeout(() => {
+            document.getElementById("collection-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 80);
         }
       }
-    } catch (err) {
-      console.warn("Failed to parse category from URL", err);
+    } else {
+      if (selectedCategories.length > 0) setSelectedCategories([]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.search, location.hash, normalizeAndSingularize]);
+  } catch (err) {
+    console.warn("Failed to parse category from URL", err);
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [location.search, location.hash, normalizeAndSingularize]);
+
 
   const toggleCategory = (categoryOrSub) => {
     const canon = normalizeAndSingularize(categoryOrSub);
@@ -106,6 +111,11 @@ const pickFirstVideo = (p) =>
     }
 
     let filtered = [...products];
+    // special query-driven filters (e.g. from /collection?filter=bestseller)
+if (specialFilter === "bestseller") {
+  filtered = filtered.filter((p) => p.bestseller);
+}
+
 
     if (selectedCategories.length > 0) {
       const selectedNorm = selectedCategories.map((s) => s); // already canonical
@@ -137,11 +147,11 @@ const pickFirstVideo = (p) =>
     // consider priceRange active if not full-cover
     if ((priceRange?.[0] ?? 0) > 0 || (priceRange?.[1] ?? 1000000) < 1000000) count++;
     setActiveFilters(count);
-  }, [products, selectedCategories, priceRange, sortOption, normalizeAndSingularize]);
+  }, [products, selectedCategories, priceRange, sortOption, normalizeAndSingularize, specialFilter]);
 
-  useEffect(() => {
-    applyFilter();
-  }, [products, selectedCategories, sortOption, priceRange, applyFilter]);
+ useEffect(() => {
+  applyFilter();
+}, [products, selectedCategories, sortOption, priceRange, applyFilter, specialFilter]);
 
   const clearAllFilters = () => {
     setSelectedCategories([]);
@@ -347,11 +357,7 @@ const pickFirstVideo = (p) =>
   price={item.price}
   finalPrice={item.finalPrice}
   stock={item.stock}
-  badgeType={
-    item.createdAt && Date.now() - new Date(item.createdAt) < 30 * 24 * 60 * 60 * 1000
-      ? "new"
-      : ""
-  }
+  isBestseller={!!item.bestseller} // <— add this
   viewMode={viewMode}
 />
 

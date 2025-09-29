@@ -18,7 +18,6 @@ const PLACEHOLDER =
      </svg>`
   );
 
-// resolve URL from string | array | object
 const resolveUrl = (val) => {
   if (!val) return null;
   if (typeof val === "string") return val;
@@ -42,7 +41,17 @@ const resolveUrl = (val) => {
   return null;
 };
 
-const ProductItem = ({ id, image, video, name, price, finalPrice }) => {
+const ProductItem = ({
+  id,
+  image,
+  video,
+  name,
+  price,
+  finalPrice,
+  // NEW:
+  isBestseller = false,
+  badgeType, // e.g. "bestseller" | "new" | "trend"
+}) => {
   const { currency } = useContext(ShopContext);
   const videoRef = useRef(null);
 
@@ -52,7 +61,6 @@ const ProductItem = ({ id, image, video, name, price, finalPrice }) => {
   const hasVideo = !!videoUrl;
   const hasImage = !!imageUrl;
 
-  // autoplay only if it's video-only
   useEffect(() => {
     if (videoRef.current && hasVideo && !hasImage) {
       const play = videoRef.current.play();
@@ -65,6 +73,16 @@ const ProductItem = ({ id, image, video, name, price, finalPrice }) => {
     ? Math.round(((Number(price) - Number(finalPrice)) / Number(price)) * 100)
     : 0;
 
+  // ------- Badge logic -------
+  const isBest = isBestseller || badgeType === "bestseller";
+  const badgeLabel = isBest
+    ? "Bestseller"
+    : badgeType === "new"
+    ? "New"
+    : badgeType === "trend"
+    ? "Trending"
+    : null;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -75,15 +93,23 @@ const ProductItem = ({ id, image, video, name, price, finalPrice }) => {
     >
       <Link to={`/product/${id}`} className="block">
         <div className="aspect-square overflow-hidden bg-gradient-to-br from-pink-50/50 to-rose-50/50 relative rounded-t-2xl">
+          {/* BADGE (top-left) */}
+          {badgeLabel && (
+            <span
+              className={`absolute top-3 left-3 z-20 px-2.5 py-1 text-xs font-semibold rounded-full shadow-sm
+                ${isBest ? "bg-amber-600 text-white" : "bg-rose-100 text-rose-700"}`}
+            >
+              {badgeLabel}
+            </span>
+          )}
+
           {hasImage ? (
-            // 🖼️ Image wins if available
             <img
               src={imageUrl}
               alt={name}
               className="absolute inset-0 w-full h-full object-cover z-10"
             />
           ) : hasVideo ? (
-            // 🎥 Only show video if no image
             <video
               ref={videoRef}
               src={videoUrl}
@@ -96,7 +122,6 @@ const ProductItem = ({ id, image, video, name, price, finalPrice }) => {
               poster={PLACEHOLDER}
             />
           ) : (
-            // 🕳️ Nothing? show placeholder
             <img
               src={PLACEHOLDER}
               alt={name}

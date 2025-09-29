@@ -145,6 +145,7 @@ const pickFirstVideo = (p) => {
         price={item.price}
         finalPrice={item.finalPrice ?? item.price}
         stock={item.stock}
+         
         badgeType={item.isNew ? "new" : item.isTrending ? "trend" : undefined}
       />
     </motion.div>
@@ -156,13 +157,7 @@ const pickFirstVideo = (p) => {
       )}
 
       {/* optional CTA */}
-      <div className="text-center mt-8">
-        <Link to="/collection">
-          <button className="px-6 py-2 rounded-full bg-amber-600 text-white hover:bg-amber-700 transition">
-            View Full Collection
-          </button>
-        </Link>
-      </div>
+      
     </motion.section>
   );
 };
