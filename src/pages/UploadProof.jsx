@@ -1,10 +1,13 @@
+// src/pages/UploadProof.jsx
 import React, { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { backendUrl } from "../App"; // or use import.meta.env.VITE_BACKEND_URL
 
-const MAX_SIZE = 5 * 1024 * 1024; // 5MB (matches your backend)
+const backendUrl =
+  import.meta.env.VITE_BACKEND_URL || "https://api.pleasantpearl.com";
+
+const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "application/pdf"];
 
 const UploadProof = () => {
@@ -54,7 +57,7 @@ const UploadProof = () => {
       form.append("orderId", orderId);
       if (txnRef.trim()) form.append("transactionRef", txnRef.trim());
       if (senderLast4.trim()) form.append("senderLast4", senderLast4.trim());
-      form.append("proof", file); // field name your backend expects
+      form.append("proof", file); // must match backend field name
 
       await axios.post(`${backendUrl}/api/order/upload-proof`, form, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -89,7 +92,9 @@ const UploadProof = () => {
     <div className="min-h-screen grid place-items-center p-4 sm:p-6">
       <div className="max-w-md w-full rounded-2xl border p-6 bg-white shadow-sm">
         <h1 className="text-xl font-semibold">Upload Payment Proof</h1>
-        <p className="text-sm text-gray-600 mt-1">Order ID: <span className="font-mono">{orderId}</span></p>
+        <p className="text-sm text-gray-600 mt-1">
+          Order ID: <span className="font-mono">{orderId}</span>
+        </p>
 
         <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
           <div>
