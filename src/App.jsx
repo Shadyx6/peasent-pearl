@@ -19,6 +19,7 @@ import Testimonial from './pages/Testimonial';
 import BestSeller from './components/BestSeller';
 import OurPolicy from './components/OurPolicy';
 import 'react-phone-input-2/lib/style.css';
+import UploadProof from './pages/UploadProof';
 
 const App = () => {
   return (
@@ -43,6 +44,7 @@ const App = () => {
           <Route path="/testimonials" element={<Testimonial />} />
           <Route path="/bestseller" element={<BestSeller />} />
           <Route path="/our-policy" element={<OurPolicy />} />
+           <Route path="/upload-proof" element={<UploadProof />} />
         </Routes>
       </main>
 
