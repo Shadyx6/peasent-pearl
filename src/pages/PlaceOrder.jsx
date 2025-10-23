@@ -68,6 +68,39 @@ const pickThumbMedia = (product, variant) => {
   };
 };
 
+
+
+// ===== API BASE (works in dev + prod) =====
+const API_ORIGIN = (
+  import.meta.env?.VITE_BACKEND_URL ||
+  // sensible dev fallback
+  (window?.location?.hostname === "localhost" || window?.location?.hostname === "127.0.0.1"
+    ? "http://127.0.0.1:5002"
+    : "")
+).replace(/\/api\/?$/, "");
+
+if (!API_ORIGIN) {
+  console.warn("VITE_BACKEND_URL is missing. Set it to https://api.pleasantpearl.com");
+}
+
+
+
+const DEBUG = true;
+const log = (...a) => DEBUG && console.log("[PlaceOrder]", ...a);
+
+const explainAxiosError = (err) => {
+  if (!err) return "Unknown error";
+  if (err.response) {
+    const { status, statusText, data } = err.response;
+    return `HTTP ${status} ${statusText} — ${typeof data === "string" ? data : (data?.message || JSON.stringify(data))}`;
+  }
+  if (err.request) {
+    return "No response from server (network/CORS/timeout).";
+  }
+  return err.message || "Unknown error";
+};
+
+
 const PlaceOrder = () => {
   const { cartItems, products, currency, delivery_fee, clearCart } = useContext(ShopContext);
   const [cartData, setCartData] = useState([]);
@@ -227,125 +260,138 @@ const PlaceOrder = () => {
   };
 
   // --- Place order ---
-  const handlePlaceOrder = async (e) => {
-    e.preventDefault();
+ // --- Place order ---
+const handlePlaceOrder = async (e) => {
+  e.preventDefault();
 
-    // basic checks
-    if (cartData.length === 0) {
-      toast.error("Your cart is empty.");
+  if (cartData.length === 0) {
+    toast.error("Your cart is empty.");
+    return;
+  }
+  if (!isValidEmail(form.email)) {
+    setFormErrors((prev) => ({ ...prev, email: "Please enter a valid email (example: name@example.com)" }));
+    toast.error("Please correct form errors before proceeding.");
+    return;
+  }
+  if (!form.state) {
+    toast.error("Please select a state/province.");
+    return;
+  }
+
+  const proofRequired = ["cod", "bank", "jazz"].includes(form.paymentMethod);
+  if (proofRequired) {
+    const missing = getMissingFields();
+    if (missing.length > 0) {
+      setMissingList(missing);
+      setMissingModalOpen(true);
       return;
     }
+  }
 
-    if (!isValidEmail(form.email)) {
-      setFormErrors((prev) => ({ ...prev, email: "Please enter a valid email (example: name@example.com)" }));
-      toast.error("Please correct form errors before proceeding.");
-      return;
-    }
+  setIsSubmitting(true);
 
-    if (!form.state) {
-      toast.error("Please select a state/province.");
-      return;
-    }
+  try {
+    const itemsPayload = cartData.map((it) => ({
+      productId: it.productId,
+      key: it._id,
+      name: it.name,
+      image: it.image || it.poster,
+      variantColor: it.variantColor || "",
+      quantity: Number(it.quantity),
+      unitPrice: Number(it.unitPrice),
+      total: Number(it.total),
+    }));
 
-    // For these payment types we require proof fields (bank/jazz) and also COD (since we expect screenshot for advance)
-    if (["cod", "bank", "jazz"].includes(form.paymentMethod)) {
-      const missing = getMissingFields();
-      if (missing.length > 0) {
-        setMissingList(missing);
-        setMissingModalOpen(true);
-        return;
+    const advanceAmount = form.paymentMethod === "cod" ? Math.round(total / 2) : total;
+
+    const orderPayload = {
+      name: form.name,
+      phone: form.phone,
+      email: form.email,
+      address: form.address,
+      city: form.city,
+      state: form.state,
+      note: form.note,
+      paymentMethod: form.paymentMethod,
+      transactionRef: form.transactionRef,
+      senderLast4: form.senderLast4,
+      items: itemsPayload,
+      subtotal,
+      shipping,
+      total,
+      advanceRequired: advanceAmount,
+      paymentInstructions: { bank: paymentDetails },
+    };
+
+    console.log("[PlaceOrder] CREATE order…", orderPayload);
+
+    // Create order
+    const createRes =await axios.post(`${API_ORIGIN}/api/order/place-manual`, orderPayload, { timeout: 60000 });
+
+    if (!createRes?.data?.success) throw new Error(createRes?.data?.message || "Order creation failed");
+    const orderId = createRes.data.orderId || createRes.data.order?._id || createRes.data.order?.id;
+    if (!orderId) throw new Error("Order ID missing from server response");
+
+    // Upload proof
+    if (file) {
+      const fd = new FormData();
+      fd.append("proof", file);
+      fd.append("orderId", orderId);
+      if (form.transactionRef) fd.append("transactionRef", form.transactionRef);
+      if (form.senderLast4) fd.append("senderLast4", form.senderLast4);
+
+      console.log("[PlaceOrder] UPLOAD proof…", { orderId, transactionRef: form.transactionRef, senderLast4: form.senderLast4 });
+
+      const uploadRes = await axios.post(
+    `${API_ORIGIN}/api/order/upload-proof`,
+    fd,
+    {
+      timeout: 60000,
+      withCredentials: false, // ✅ prevents CORS problems
+      headers: {
+        Accept: "*/*" // ✅ DO NOT SET Content-Type yourself
       }
     }
+  );
 
-    setIsSubmitting(true);
-    try {
-      const itemsPayload = cartData.map((it) => ({
-        productId: it.productId,
-        key: it._id,
-        name: it.name,
-        image: it.image || it.poster, 
-        // variant: it.variant,
-         variantColor: it.variantColor || "",   // 👈 send col
-        quantity: Number(it.quantity),
-        unitPrice: Number(it.unitPrice),
-        total: Number(it.total),
-      }));
-
-      const orderPayload = {
-        name: form.name,
-        phone: form.phone,
-        email: form.email,
-        address: form.address,
-        city: form.city,
-        state: form.state,
-        note: form.note,
-        paymentMethod: form.paymentMethod,
-        transactionRef: form.transactionRef,
-        senderLast4: form.senderLast4,
-        items: itemsPayload,
-        subtotal,
-        shipping,
-        total,
-        advanceRequired: advanceAmount,
-        paymentInstructions: { bank: paymentDetails },
-      };
-
-      const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/order/place-manual`, orderPayload);
-      if (!res?.data?.success) throw new Error(res?.data?.message || "Order creation failed");
-
-      const orderId = res.data.orderId || res.data.order?._id || res.data.order?.id;
-
-      // --- UX improvement: navigate immediately so customer doesn't wait ---
-      toast.success("Order placed successfully!");
-      clearCart();
-
-      const q = new URLSearchParams({
-        name: form.name || "Customer",
-        amount: advanceAmount.toFixed(2),
-        orderId: orderId || "",
-      }).toString();
-
-      // Fire background tasks but don't block navigation:
-      (async () => {
-        try {
-          // Upload proof if any (non-blocking)
-          if (file) {
-            const fd = new FormData();
-            fd.append("proof", file);
-            fd.append("orderId", orderId);
-            if (form.transactionRef) fd.append("transactionRef", form.transactionRef);
-            if (form.senderLast4) fd.append("senderLast4", form.senderLast4);
-            await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/order/upload-proof`, fd, {
-              headers: { "Content-Type": "multipart/form-data" },
-            });
-          }
-
-          // Decrement stock (best-effort)
-          const decPromises = itemsPayload.map((it) =>
-            axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/product/decrement-stock`, {
-              productId: it.productId,
-                color: String(it.variantColor || "").trim(),   // 👈 not it.variant
-              quantity: Number(it.quantity || 0),
-            }).catch((err) => {
-              console.warn("decrement-stock failed for", it.productId, it.variant, err?.message || err);
-            })
-          );
-          await Promise.allSettled(decPromises);
-        } catch (bgErr) {
-          console.error("Background tasks error:", bgErr);
-        }
-      })();
-
-      // navigate right away (this reduces perceived delay)
-      navigate(`/thank-you?${q}`);
-      // small reload removed — avoid forced reload to keep UX smooth
-    } catch (err) {
-      console.error("Place order error:", err);
-      toast.error(err?.response?.data?.message || err.message || "Server error while placing order");
-    } finally {
-      setIsSubmitting(false);
+      if (!uploadRes.data.success) {
+        throw new Error(uploadRes.data.message || "Failed to upload payment proof");
+      }
+      console.log("[PlaceOrder] UPLOAD success:", uploadRes.data);
     }
-  };
+
+    // Decrement stock (background)
+    (async () => {
+      try {
+        await Promise.allSettled(
+          itemsPayload.map((it) =>
+            axios.post(`${API_ORIGIN}/api/product/decrement-stock`, {
+              productId: it.productId,
+              color: String(it.variantColor || "").trim(),
+              quantity: Number(it.quantity || 0),
+            })
+          )
+        );
+      } catch (err) {
+        console.warn("[PlaceOrder] decrement-stock error:", err);
+      }
+    })();
+
+    toast.success("Order placed successfully!");
+    clearCart();
+    const q = new URLSearchParams({
+      name: form.name || "Customer",
+      amount: advanceAmount.toFixed(2),
+      orderId,
+    }).toString();
+    navigate(`/thank-you?${q}`);
+  } catch (err) {
+    console.error("[PlaceOrder] Error:", err);
+    toast.error(err.message || "Failed to place order");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const proofRequired = ["cod", "bank", "jazz"].includes(form.paymentMethod);
   const canSubmit =
@@ -354,46 +400,46 @@ const PlaceOrder = () => {
     isValidEmail(form.email);
 
     // put these above the component (reuse your PLACEHOLDER_IMG if you like)
-const urlFromAny = (val) => {
-  if (!val) return null;
-  if (typeof val === "string") return val;
-  if (Array.isArray(val)) {
-    for (const it of val) {
-      const u = urlFromAny(it);
-      if (u) return u;
-    }
-    return null;
-  }
-  if (typeof val === "object") {
-    return (
-      urlFromAny(val.secure_url) ||
-      urlFromAny(val.url) ||
-      urlFromAny(val.src) ||
-      urlFromAny(val.path) ||
-      urlFromAny(val.image) ||
-      null
-    );
-  }
-  return null;
-};
+// const urlFromAny = (val) => {
+//   if (!val) return null;
+//   if (typeof val === "string") return val;
+//   if (Array.isArray(val)) {
+//     for (const it of val) {
+//       const u = urlFromAny(it);
+//       if (u) return u;
+//     }
+//     return null;
+//   }
+//   if (typeof val === "object") {
+//     return (
+//       urlFromAny(val.secure_url) ||
+//       urlFromAny(val.url) ||
+//       urlFromAny(val.src) ||
+//       urlFromAny(val.path) ||
+//       urlFromAny(val.image) ||
+//       null
+//     );
+//   }
+//   return null;
+// };
 
-const pickThumbMedia = (product, variant) => {
-  const image =
-    urlFromAny(variant?.images?.[0]) ||
-    urlFromAny(product?.image) ||
-    null;
+// const pickThumbMedia = (product, variant) => {
+//   const image =
+//     urlFromAny(variant?.images?.[0]) ||
+//     urlFromAny(product?.image) ||
+//     null;
 
-  const video =
-    urlFromAny(variant?.videos?.[0]) ||
-    urlFromAny(product?.videos?.[0]) ||
-    null;
+//   const video =
+//     urlFromAny(variant?.videos?.[0]) ||
+//     urlFromAny(product?.videos?.[0]) ||
+//     null;
 
-  return {
-    image,
-    video,
-    poster: image || PLACEHOLDER_IMG, // poster for video + last-resort placeholder
-  };
-};
+//   return {
+//     image,
+//     video,
+//     poster: image || PLACEHOLDER_IMG, // poster for video + last-resort placeholder
+//   };
+// };
 
 
   return (
@@ -634,7 +680,7 @@ const pickThumbMedia = (product, variant) => {
                             <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">Click to upload</span> or drag and drop</p>
                             <p className="text-xs text-gray-500">PNG, JPG, PDF (Max 5MB)</p>
                           </div>
-                          <input type="file" className="hidden" accept=".png,.jpg,.jpeg,.pdf" onChange={handleFile} />
+                          <input type="file" name="proof" className="hidden" accept=".png,.jpg,.jpeg,.pdf" onChange={handleFile} />
                         </label>
                       </div>
 
