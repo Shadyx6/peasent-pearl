@@ -62,9 +62,11 @@ const Cart = () => {
   const {
     products,
     currency,
-    cartItems,       // now an array [{productId, variantId, variantColor, quantity}, ...]
-    removeFromCart,  // removeFromCart(productId, variantId)
-    updateQuantity,  // updateQuantity(productId, variantId, newQuantity)
+    cartItems,       
+ removeFromCart,          // backward-compat
+   updateQuantity,          // backward-compat
+  removeFromCartByKey,     // ✅ precise (new, if in ShopContext)
+  updateQuantityByKey,
     delivery_fee,
     navigate,
     clearCart,
@@ -97,13 +99,20 @@ const Cart = () => {
 
         const priceToUse = product.finalPrice ?? product.price;
         const quantity = Math.max(1, Number(ci.quantity) || 1);
+         const engravingFirstName = (ci.engravingFirstName || "").trim();
+          const engravingLastName  = (ci.engravingLastName  || "").trim();
+           // prefer existing cartKey from context; fallback to a deterministic one
+           const cartKey = ci.cartKey || `${ci.productId}__${ci.variantId || ci.variantColor || "default"}__fn_${engravingFirstName.toLowerCase()}__ln_${engravingLastName.toLowerCase()}`;
+
 
         return {
-          cartKey: `${ci.productId}_${ci.variantId || ci.variantColor || "default"}`,
+          cartKey,
           productId: ci.productId,
           variantId: ci.variantId || null,
           name: product.name,
           color: variant?.color || ci.variantColor || "default",
+          engravingFirstName,
+          engravingLastName,
           image,
           video,
           poster,
@@ -120,16 +129,25 @@ const Cart = () => {
     console.debug("Cart items mapped:", items);
   }, [cartItems, products]);
 
-  const handleQuantityChange = (productId, variantId, newQuantity) => {
-    newQuantity = Number(newQuantity || 0);
-    if (newQuantity >= 1) {
-      updateQuantity(productId, variantId, newQuantity);
-    }
-  };
+ const handleQuantityChange = (item, newQuantity) => {
+   newQuantity = Number(newQuantity || 0);
+   if (newQuantity >= 1) {
+     if (typeof updateQuantityByKey === "function") {
+       updateQuantityByKey(item.cartKey, newQuantity);    // ✅ precise
+     } else {
+       updateQuantity(item.productId, item.variantId, newQuantity); // fallback
+     }
+   }
+ };
 
-  const handleRemoveItem = (productId, variantId) => {
-    removeFromCart(productId, variantId);
-  };
+  const handleRemoveItem = (item) => {
+   if (typeof removeFromCartByKey === "function") {
+     removeFromCartByKey(item.cartKey);     // ✅ precise
+   } else {
+     removeFromCart(item.productId, item.variantId); // fallback
+   }
+ };
+
 
   const subtotal = cartData.reduce((sum, item) => sum + Number(item.total || 0), 0);
 
@@ -177,7 +195,7 @@ const Cart = () => {
           <div className="space-y-6">
             <AnimatePresence>
               {cartData.map((item) => (
-                <motion.div key={`${item.productId}_${item.variantId || item.color}`}
+                <motion.div key={item.cartKey}
                   initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.3 }} className="flex flex-col sm:flex-row gap-6 p-4 bg-white rounded-xl shadow-sm border border-amber-100">
                   <div className="flex-shrink-0">
@@ -218,12 +236,19 @@ const Cart = () => {
                   <div className="flex-1">
                     <div className="flex justify-between">
                       <h4 className="text-lg font-medium text-amber-900">{item.name}</h4>
-                      <button onClick={() => handleRemoveItem(item.productId, item.variantId)} className="text-amber-600 hover:text-amber-800 transition-colors">
+                      <button onClick={() => handleRemoveItem(item)}  className="text-amber-600 hover:text-amber-800 transition-colors">
                         <FiTrash2 />
                       </button>
                     </div>
 
-                    <p className="text-sm text-gray-500 mt-1">Color: {item.color}</p>
+                    <p className="text-sm text-gray-500 mt-1">
+   Color: {item.color}
+   {(item.engravingFirstName || item.engravingLastName) && (
+     <> · Name: <span className="font-medium">
+       {`${item.engravingFirstName} ${item.engravingLastName}`.trim()}
+     </span></>
+   )}
+ </p>
 
                     <p className="text-2xl font-medium text-amber-700 mt-2">
                       {item.finalPrice && item.finalPrice < item.price ? (
@@ -238,9 +263,9 @@ const Cart = () => {
 
                     <div className="flex items-center justify-between mt-4">
                       <div className="flex items-center border border-amber-200 rounded-lg">
-                        <button onClick={() => handleQuantityChange(item.productId, item.variantId, item.quantity - 1)} className="px-3 py-1 text-amber-700 hover:bg-amber-50 transition-colors">-</button>
+                        <button onClick={() => handleQuantityChange(item, item.quantity - 1)}className="px-3 py-1 text-amber-700 hover:bg-amber-50 transition-colors">-</button>
                         <span className="px-4 py-1">{item.quantity}</span>
-                        <button onClick={() => handleQuantityChange(item.productId, item.variantId, item.quantity + 1)} className="px-3 py-1 text-amber-700 hover:bg-amber-50 transition-colors">+</button>
+                        <button onClick={() => handleQuantityChange(item, item.quantity + 1)} className="px-3 py-1 text-amber-700 hover:bg-amber-50 transition-colors">+</button>
                       </div>
 
                       <p className="text-sm font-semibold text-amber-700">Total: {currency} {item.total}</p>

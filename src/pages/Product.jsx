@@ -19,6 +19,8 @@ const Product = () => {
   // --- hooks (stable order) ---
   const { productId } = useParams();
   const { products, currency, addToCart } = useContext(ShopContext);
+   const [firstName, setFirstName] = useState("");
+  const [lastName,  setLastName]  = useState("");
   const navigate = useNavigate();
 
   const [product, setProduct] = useState(null);
@@ -37,6 +39,10 @@ const Product = () => {
     if (typeof product?.stock === "number") return Math.max(0, product.stock);
     return 0;
   };
+
+  const normalize = (v) => v.replace(/[^a-zA-Z\s]/g, "").slice(0, 12);
+
+  
 
  const PLACEHOLDER_IMG =
   "data:image/svg+xml;utf8," +
@@ -211,14 +217,23 @@ const allMedia = buildAllMedia(product);
 
   // Handler when user clicks Add to Cart (we do NOT decrement server-side here by default)
   const handleAddToCart = () => {
-    if (!selectedVariant) return;
-    const available = variantStock(selectedVariant);
-    if (available <= 0) return;
-    if (quantity > available) setQuantity(available);
-    setIsAddingToCart(true);
-    addToCart(product._id, quantity, selectedVariant?._id, selectedVariant?.color);
-    setTimeout(() => setIsAddingToCart(false), 800);
-  };
+  if (!selectedVariant) return;
+  const available = variantStock(selectedVariant);
+  if (available <= 0) return;
+  if (quantity > available) setQuantity(available);
+  setIsAddingToCart(true);
+
+  addToCart(
+    product._id,
+    quantity,
+    selectedVariant?._id,
+    selectedVariant?.color,
+    { engravingFirstName: firstName.trim(), engravingLastName: lastName.trim() } // ✅ pass names
+  );
+
+  setTimeout(() => setIsAddingToCart(false), 800);
+};
+
 
   // Handler for Buy Now — attempt to decrement stock on server (if allowed) and optimistically update UI
   const handleBuyNow = async () => {
@@ -237,7 +252,13 @@ const allMedia = buildAllMedia(product);
       // the optimistic change remains (you should reconcile from server later).
       await decrementStockOnServer(product._id, selectedVariant.color, qtyToBuy);
 
-      addToCart(product._id, qtyToBuy, selectedVariant._id, selectedVariant.color);
+     addToCart(
+  product._id,
+  qtyToBuy,
+  selectedVariant._id,
+  selectedVariant.color,
+  { engravingFirstName: firstName.trim(), engravingLastName: lastName.trim() } // ✅ pass names
+);
 
       navigate("/place-order");
     } catch (err) {
@@ -644,6 +665,10 @@ const renderMainMedia = (media) => {
               </div>
             )}
 
+            
+
+            
+
             {/* Quantity & Buttons */}
             <div className="pt-6 border-t border-gray-100 space-y-6">
               <div className="flex items-center justify-between">
@@ -655,7 +680,30 @@ const renderMainMedia = (media) => {
                 </div>
               </div>
 
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+  <div>
+    <label className="block text-sm text-gray-700 mb-1">First name (engraving)</label>
+    <input
+      value={firstName}
+      onChange={(e) => setFirstName(normalize(e.target.value))}
+      placeholder="First Name"
+      className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-amber-500 focus:border-amber-500"
+    />
+  </div>
+  <div>
+    <label className="block text-sm text-gray-700 mb-1">Last name (engraving)</label>
+    <input
+      value={lastName}
+      onChange={(e) => setLastName(normalize(e.target.value))}
+      placeholder="Last Name"
+      className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-amber-500 focus:border-amber-500"
+    />
+  </div>
+</div>
+
+
               <div className="flex space-x-4">
+                
                 <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleAddToCart} disabled={!selectedVariant || isAddingToCart || selectedAvailable <= 0} className={`flex-1 py-4 rounded-xl font-semibold flex items-center justify-center space-x-3 transition-all ${!selectedVariant || selectedAvailable <= 0 ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-gradient-to-r from-amber-700 to-orange-700 text-white hover:from-amber-700 hover:to-amber-700 shadow-lg hover:shadow-xl"}`}>
                   <FiShoppingCart />
                   <span>{isAddingToCart ? "Adding..." : selectedAvailable <= 0 ? "Out of Stock" : "Add to Cart"}</span>

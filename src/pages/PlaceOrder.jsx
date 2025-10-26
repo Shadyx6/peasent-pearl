@@ -139,48 +139,61 @@ const PlaceOrder = () => {
   };
 
   // Map cart items to cart data
-  useEffect(() => {
-    const items = (cartItems || [])
-      .map((ci) => {
-        if (!ci || !ci.productId) return null;
-        const product = products?.find((p) => String(p._id) === String(ci.productId));
-        if (!product) return null;
+useEffect(() => {
+  const items = (cartItems || [])
+    .map((ci) => {
+      if (!ci || !ci.productId) return null;
+      const product = products?.find((p) => String(p._id) === String(ci.productId));
+      if (!product) return null;
 
-        let variant = null;
-        if (ci.variantId) {
-          variant = product.variants?.find((v) => String(v._id) === String(ci.variantId));
-        }
-        if (!variant && ci.variantColor) {
-          variant = product.variants?.find(
-            (v) => (v.color || "").toLowerCase() === String(ci.variantColor).toLowerCase()
-          );
-        }
+      // find variant
+      let variant = null;
+      if (ci.variantId) {
+        variant = product.variants?.find((v) => String(v._id) === String(ci.variantId));
+      }
+      if (!variant && ci.variantColor) {
+        variant = product.variants?.find(
+          (v) => (v.color || "").toLowerCase() === String(ci.variantColor).toLowerCase()
+        );
+      }
 
-        const variantColor = String(variant?.color ?? ci.variantColor ?? "").trim();
+      const variantColor = String(variant?.color ?? ci.variantColor ?? "").trim();
+      const { image, video, poster } = pickThumbMedia(product, variant);
 
-        /* --- CHANGED: video-first media selection --- */
-        const { image, video, poster } = pickThumbMedia(product, variant);
+      const unitPrice = product.finalPrice ?? product.price ?? 0;
+      const quantity = Math.max(0, Number(ci.quantity || 0));
 
-        const unitPrice = product.finalPrice ?? product.price ?? 0;
-        const quantity = Math.max(0, Number(ci.quantity || 0));
+      // ✅ NEW: engraving fields (from ShopContext cart line)
+      const engravingFirstName = (ci.engravingFirstName || "").trim();
+      const engravingLastName  = (ci.engravingLastName  || "").trim();
 
-        return {
-          _id: `${ci.productId}_${variantColor || "default"}`,
-          productId: ci.productId,
-          name: product.name,
-          image,           // keep image for payload/preview
-          video,           // NEW
-          poster,          // NEW
-          variantColor,
-          unitPrice,
-          quantity,
-          total: unitPrice * quantity,
-        };
-      })
-      .filter(Boolean);
+      // ✅ Prefer cartKey if present; else build a deterministic key including names
+      const cartKey =
+        ci.cartKey ||
+        `${ci.productId}__${ci.variantId || variantColor || "default"}__fn_${engravingFirstName.toLowerCase()}__ln_${engravingLastName.toLowerCase()}`;
 
-    setCartData(items);
-  }, [cartItems, products]);
+      return {
+        _id: cartKey,                 // ✅ was `${ci.productId}_${variantColor}`, now a stable-by-name key
+        productId: ci.productId,
+        variantId: ci.variantId || null,
+        name: product.name,
+        image,
+        video,
+        poster,
+        variantColor,
+        unitPrice,
+        quantity,
+        total: unitPrice * quantity,
+
+        // ✅ keep for payload + UI
+        engravingFirstName,
+        engravingLastName,
+      };
+    })
+    .filter(Boolean);
+
+  setCartData(items);
+}, [cartItems, products]);
 
   const subtotal = cartData.reduce((s, it) => s + (Number(it.total) || 0), 0);
   const shipping = subtotal >= 3000 ? 0 : Number(delivery_fee || 0);
@@ -300,6 +313,8 @@ const handlePlaceOrder = async (e) => {
       quantity: Number(it.quantity),
       unitPrice: Number(it.unitPrice),
       total: Number(it.total),
+      engravingFirstName: it.engravingFirstName || "",
+      engravingLastName:  it.engravingLastName  || "",
     }));
 
     const advanceAmount = form.paymentMethod === "cod" ? Math.round(total / 2) : total;
@@ -768,6 +783,13 @@ const handlePlaceOrder = async (e) => {
                       {item.variantColor && (
                         <p className="text-xs text-gray-500">Color: {item.variantColor}</p>
                       )}
+                      {(item.engravingFirstName || item.engravingLastName) && (
+   <p className="text-[11px] text-gray-600">
+     Name: <span className="font-medium">
+       {`${item.engravingFirstName || ""} ${item.engravingLastName || ""}`.trim()}
+     </span>
+   </p>
+ )}
                       <div className="flex justify-between items-center mt-1">
                         <span className="text-sm text-gray-600">Qty: {item.quantity}</span>
                         <span className="text-sm font-medium text-gray-800"> {item.total.toFixed(2)} {currency}</span>
