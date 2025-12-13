@@ -64,19 +64,22 @@ const Product = () => {
       variantId: vId,
       color,
     }));
+    const normalizeVideoUrl = (fileName) => {
+  if (!fileName) return null;
+  const base = import.meta.env.VITE_BACKEND_URL;
+  return `${base}/api/video/${encodeURIComponent(fileName)}`;
+};
 
-    const vids = (variant.videos || []).map((url) => ({
-      type: "video",
-      url,
-      variantId: vId,
-      color,
-      // 👇 Always ensure poster exists
-      poster:
-        (variant.images && variant.images[0]) ||
-        prod.image ||
-        url + "#t=0.5" || // <-- fallback: use first frame of the video
-        null,
-    }));
+  const vids = (variant.videos || []).map((fileName) => ({
+  type: "video",
+  url: normalizeVideoUrl(fileName),    
+  variantId: vId,
+  color,
+  poster:
+    (variant.images && variant.images[0]) ||
+    prod.image ||
+    null,
+}));
 
     return [...imgs, ...vids];
   });
@@ -282,6 +285,12 @@ const allMedia = buildAllMedia(product);
       setIsProcessingPurchase(false);
     }
   };
+  const normalizeVideoUrl = (fileName) => {
+  if (!fileName) return null;
+  const base = import.meta.env.VITE_BACKEND_URL;
+  return `${base}/api/video/${encodeURIComponent(fileName)}`;
+};
+
 // --- Add after useState declarations ---
 const normalizeImageUrl = (url) => {
   if (!url) return null;
@@ -332,7 +341,10 @@ const trySelectVariant = (variant, preferredIndex = null) => {
 // Helper to render main media (image or video)
 const renderMainMedia = (media) => {
   if (!media || !media.url) return null;
-  const url = normalizeImageUrl(media.url);
+  const url = media.type === "video"
+  ? media.url
+  : normalizeImageUrl(media.url);
+
   if (!url) return null;
 
   if (media.type === "image") {
@@ -392,7 +404,11 @@ const renderMainMedia = (media) => {
       >
         {/* console log the final url so you can confirm in browser console */}
         {console.log("renderMainMedia: video source ->", url)}
-        <source src={url} type="video/mp4" />
+       <source src={
+  allMedia[activeMediaIndex].type === "video"
+    ? allMedia[activeMediaIndex].url
+    : normalizeImageUrl(allMedia[activeMediaIndex].url)
+} />
         Your browser does not support the video tag.
       </video>
     </div>
