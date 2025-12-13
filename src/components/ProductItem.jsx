@@ -54,8 +54,11 @@ const ProductItem = ({
 }) => {
   const { currency } = useContext(ShopContext);
   const videoRef = useRef(null);
+  const BASE = import.meta.env.VITE_BACKEND_URL
 
-  const videoUrl = resolveUrl(video);
+  const videoUrl = video 
+  ? `${BASE}/api/video/${video}`
+  : null;;
   const imageUrl = resolveUrl(image);
 
   const hasVideo = !!videoUrl;
